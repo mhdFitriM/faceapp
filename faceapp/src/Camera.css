@@ -1,0 +1,321 @@
+/* ─── Camera Overlay ─── */
+.camera-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  /* Safe area for notches */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.camera-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  z-index: 10;
+}
+
+.cam-title {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.3px;
+}
+
+.cam-icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+}
+
+.cam-icon-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.14);
+  transform: scale(1.05);
+}
+
+.cam-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ─── Viewport ─── */
+.camera-viewport {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  overflow: hidden;
+  background: #000;
+}
+
+.cam-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cam-video.mirror {
+  transform: scaleX(-1);
+}
+
+/* ─── Flash ─── */
+.cam-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  animation: flashFade 0.3s ease forwards;
+  z-index: 30;
+  pointer-events: none;
+}
+
+@keyframes flashFade {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ─── Face Guide Frame ─── */
+.face-guide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.face-guide.visible {
+  opacity: 1;
+}
+
+/* Oval guide */
+.face-guide::before {
+  content: '';
+  position: absolute;
+  width: min(64vw, 280px);
+  height: min(80vw, 340px);
+  border: 2px solid rgba(99, 102, 241, 0.6);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,0.45),
+    0 0 30px rgba(99,102,241,0.3) inset;
+}
+
+/* Corner brackets */
+.guide-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-color: var(--accent);
+  border-style: solid;
+  opacity: 0.9;
+}
+
+.guide-corner.tl { top: calc(50% - min(40vw, 170px)); left: calc(50% - min(32vw, 140px)); border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.guide-corner.tr { top: calc(50% - min(40vw, 170px)); right: calc(50% - min(32vw, 140px)); border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.guide-corner.bl { bottom: calc(50% - min(40vw, 170px)); left: calc(50% - min(32vw, 140px)); border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.guide-corner.br { bottom: calc(50% - min(40vw, 170px)); right: calc(50% - min(32vw, 140px)); border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+
+/* ─── Scan Line ─── */
+.scan-line {
+  position: absolute;
+  left: calc(50% - min(32vw, 140px));
+  width: min(64vw, 280px);
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scan-line 1.8s linear infinite;
+  box-shadow: 0 0 12px var(--accent);
+}
+
+/* ─── Countdown ─── */
+.cam-countdown {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.cam-countdown span {
+  font-family: var(--font-heading);
+  font-size: 96px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 0 40px rgba(99,102,241,0.8);
+  animation: fadeIn 0.2s ease;
+}
+
+/* ─── Scanning State ─── */
+.cam-scanning {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 20;
+}
+
+.cam-scanning p {
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+.scanning-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.scanning-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: bounce-dot 1.4s ease-in-out infinite;
+}
+
+.scanning-dots span:nth-child(2) { animation-delay: 0.2s; }
+.scanning-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* ─── Loading / Error ─── */
+.cam-loading, .cam-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background: rgba(10,10,22,0.9);
+  z-index: 5;
+}
+
+.cam-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(99,102,241,0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.cam-loading p, .cam-error p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 0 32px;
+}
+
+.cam-error-icon {
+  color: var(--accent-red);
+  opacity: 0.8;
+}
+
+.cam-permission-icon {
+  color: var(--accent);
+  opacity: 0.9;
+}
+
+.cam-prompt p {
+  max-width: 320px;
+}
+
+/* ─── Hint ─── */
+.cam-hint {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+
+/* ─── Controls / Shutter ─── */
+.camera-controls {
+  padding: 12px 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shutter-btn {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.15s ease;
+}
+
+.shutter-btn:active:not(.disabled) {
+  transform: scale(0.92);
+}
+
+.shutter-btn.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.shutter-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid #fff;
+}
+
+.shutter-inner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.shutter-btn:hover:not(.disabled) .shutter-inner {
+  background: rgba(255,255,255,0.88);
+  transform: scale(0.96);
+}
+
+/* ─── Primary Button ─── */
+.btn-primary {
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition), transform var(--transition);
+}
+
+.btn-primary:hover { opacity: 0.88; transform: scale(1.02); }

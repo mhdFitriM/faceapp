@@ -1,0 +1,29 @@
+# Root repo ignores
+.env
+.DS_Store
+Thumbs.db
+
+# FaceApp
+/faceapp/node_modules
+/faceapp/dist
+/faceapp/dist-ssr
+/faceapp/.env
+
+# Laravel API
+/faceapp-api/.env
+/faceapp-api/vendor
+/faceapp-api/node_modules
+/faceapp-api/public/storage
+/faceapp-api/storage/*.key
+/faceapp-api/storage/pail
+/faceapp-api/storage/logs/*.log
+/faceapp-api/storage/app/public/face-uploads
+/faceapp-api/.phpunit.result.cache
+/faceapp-api/.phpunit.cache
+
+# Gateway
+/gateway-sdk-service_v2.0.6_20240117/logs/*.log
+
+# Docker runtime
+/caddy_data
+/caddy_config

@@ -1,0 +1,3961 @@
+
+--- PAGE 1 ---
+1. Document description
+This document is mainly used for the face machine middleware HTTP interface
+docking, suitable for system development and maintenance personnel.
+1.1 Server preparation
+1. Port 10010,10011,8190 is required
+2. Support for windows and Linux systems
+3. Install Java, run environment JDK 1.8
+1.2 Service startup
+1. windows System needs to modify the start t. The jdk path of the bat file,
+like: set JAVA _ EXE = D: "Program Files" \ Java \ jre 8 \ bin \ java
+
+
+--- PAGE 2 ---
+2. Double click to run start. Bat, the popup below indicates that the middleware
+runs successfully, close the popup middleware service is closed
+1.3 Cloud configuration of devices
+Before communicating with the cloud, the server should be configured in the Web
+interface of the face device.
+Note: The web configuration must first run the face recognition App.
+
+--- PAGE 3 ---
+1. Click the setting icon in the upper right corner of the device, enter the
+password background and click Login to enter the Settings page
+1. Click to enter the Communication Settings to configure the server
+information
+
+--- PAGE 4 ---
+1. communications setting
+ Turn on the server switch
+ Connect the way to select the cloud
+ The connection protocol selects the TCP
+ The password itself is set in line with the following interface parameter
+secret
+ Server IP Fill in the server IP for deploying the middleware
+ The server side port is set to 10010
+
+--- PAGE 5 ---
+2. interface specification
+2.1 Interface specification
+ Interface syntax: http: / / {middleware server IP}: 8190 / api / {module} /
+{action}
+ {Middleware server IP}: The IP address of the requested middleware
+server
+ {module}: The module name
+ {action}: Interface name
+ Interface form: to provide external services to HTTP by converting TCP
+ Character code: unified UTF-8 format
+ Request header: ContentType = application / x-www-form-urlencoded
+ Request method: Unified use of the POST method
+2.2 Interface returns
+The data returned by all interfaces, the interface return examples involved in the
+document, the return data of individual interfaces will be slightly adjusted, and the
+true return results shall prevail.
+
+--- PAGE 6 ---
+field descripti
+on
+type Must
+pass
+explain
+code return
+code
+String Y Normal operation use a uniform return
+code, and each abnormal operation
+has a separate return code
+msg return
+informatio
+n
+String Y The information returned by the
+interface, usually try the error
+information
+data Return
+data
+Int / String /
+Object /List
+N The interface returns data that may be
+a numeric, string, object, or collection
+ts return
+time
+Long Y Unix millisecond-level timestamp
+(13-bit)
+success Execution
+results
+boolean Y Whether the operation is successful,
+success is true, failure is false
+2.3 Precautions
+ When calling the device interface, do not call the interface of the same device on
+other client servers.
+ If the call interface returns the parameter exception, follow these steps:
+ Check whether the parameter name is misspelled and whether there is
+space or return in the parameter name
+ Check whether the parameter value conforms to the specification, such as
+the Int value is not defined, the id contains illegal characters other than the
+number letters, etc
+ Whether there is a space in Json (using the Json string returned directly by
+the interface needs to go to the space), whether there is more or less "
+symbols, please carefully check the postman example of each interface
+ If the call interface returns empty, indicating an url error (IP error, spelling error,
+field omission, etc.)
+
+--- PAGE 7 ---
+ If the call interface returns Could not get any response, the possible reasons are:
+IP address error, port number error or omission, transmission form error, etc.
+2.4 Scope of application
+This document is applicable to:
+ Version number: V2.00.0.X and higher Android devices.
+The X in the version number indicates any arbitrary number
+3. Device management interface
+3.1 Obtain the equipment information
+Description: Get the device information of the face machine.
+Method URL
+GET / POST http: / / middleware server IP: 8190 / api / device / get
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device
+serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the face
+device
+Postman instance
+Return an example
+
+--- PAGE 8 ---
+3.2 Equipment reboot
+Note: Restart the face recognition device.
+Method URL
+POST http: / / middleware server IP: 8190 / api / device /
+reboot
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+
+--- PAGE 9 ---
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device
+serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the face
+device
+Postman instance
+Return an example
+Code code description
+code a sign or object
+indicating number
+msg
+100201 Device restart failed without ROOT
+3.3 Equipment reset
+Note: Reset the face recognition device.
+Method URL
+POST The http: / / middleware server IP: 8190 / api / device / reset
+Header land within certain boundaries
+parameter
+name
+descriptio
+n
+type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+secret password String Y  Server password set in the
+communication settings on the face
+device
+
+--- PAGE 10 ---
+deviceKey Device serial
+number
+String Y  Device Serial number, 16-bit
+type Device reset
+type
+Int Y Device reset type, reset the information of
+the corresponding type on the device,
+and it cannot be recovered after reset
+ 1: All of the data
+ 2: Personnel registration information
+ 3: Photo information
+ 4: Personnel characteristic
+information
+ 5: Identification records
+Postman instance
+Return an example
+3.4 Equipment configuration
+Description: Configure the recognition parameters, recognition mode parameters,
+peripheral parameters, UI display parameters and server parameters of the machine.
+When interface calling, if the corresponding parameters are not filled, use the system
+default parameters to set.
+Method URL
+POST http: / / middleware server IP: 8190 / api / device / setConfig
+Header land within certain boundaries
+parameter
+name
+descriptiontype Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+
+--- PAGE 11 ---
+parameter name description type Must
+pass
+Additional instructions
+secret password String Y Server password set in the
+communication settings on the face
+device
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+recThreshold1vN The 1 vN face
+recognition
+threshold
+Int N Default of 65.
+Please input an integer between 50
+and 100, the higher the score, the
+higher the recognition accuracy, but
+the recognition speed will be slower.
+recThreshold1v1 1v1 face
+recognition
+threshold
+Int N ditto
+recInterval Identify
+interval time
+Int N Default 3 seconds.
+Identification interval (the interval
+between the callback notification
+interface after the same person).
+recDistance Identify
+distance
+Int N Identify distance:
+ 0: Unlimited (by default)
+ Within 1:0.5 m
+ Within 2:1 m
+ 3: within 1.5 meters
+ Within 4:2 meters
+ Within 5:3 meters
+ Within 6:4 meters
+recRank Identify the
+living level
+Int N Identify living levels:
+ 1. No in-vivo test (by default)
+ 2. Monocular living animals
+ 3. Double eyes of the live body
+recSucTtsMode speech
+pattern
+Int N speech pattern:
+ 1. Do not broadcast the voice
+message
+ 2. Name Report (by default)
+ 100. Customize the voice
+broadcast
+
+--- PAGE 12 ---
+recSucTtsCustom Voice self-
+determined
+content
+String N Voice self-determined content
+ Default {name}
+ If recSucTtsMode is 100, this
+field is mandatory and cannot
+be empty
+ Allow the {name}. Fixed field
+format, other content is allowed
+only for numbers, English and
+Chinese characters,
+ The length is limited to 255
+characters. Such as: {name}
+welcome to visit
+recSucDisplayMode Display mode Int N Display mode
+ 1: Name (default)
+ 2: Do not display the content
+ 100: Custom display
+recSucDisplayCusto
+m
+Displays the
+custom
+content
+Int N Displays the custom content
+ Default {name}
+ If recSucDisplayMode is 100,
+this field is mandatory and
+cannot be empty
+ Allow the {name}. The field
+format is fixed, only numbers,
+English and Chinese symbols
+are allowed, and the length is
+limited to 255 characters. Such
+as: {name}, check-in
+successfully!
+recStrangerEnable Identify the
+stranger
+switch
+Int N Identify the stranger switch:
+ 0. Do not identify strangers
+ 1. Identify strangers (by default)
+recIsStrangerTimes Number of
+identification
+failure
+decisions
+Int N How many times do you fail to
+identify yourself as a stranger.
+Default 2 times
+recStrangerTtsMod
+e
+Stranger
+voice mode
+Int N Stranger voice mode
+ 1: No voice broadcast (default)
+ 2: Voice broadcast "personnel
+are not registered, please
+contact the administrator"
+ 100: Customize strangers' voice
+sounds
+recStrangerTtsCust
+om
+Voice
+broadcast
+custom
+content
+String N Voice broadcast custom content,
+ If recStrangerTtsMode is 100,
+this field is mandatory and
+cannot be empty
+ Content is only allowed for
+numbers, English, and Chinese
+characters, and the length is
+limited to 255 characters. Pay
+attention to strangers
+
+--- PAGE 13 ---
+recStrangerDisplay
+Mode
+The stranger
+screen
+displays the
+text type
+Int N The stranger screen displays the
+text type
+ 1. Personnel are not registered
+(by default)
+ 100. To customize it
+recStrangerDisplay
+Custom
+The stranger
+screen
+displays the
+text content
+String N The stranger screen displays text
+custom content
+ If recStrangerDisplayMode is
+100, this field is mandatory and
+cannot be empty
+ The content only allows digital,
+Chinese and Chinese symbols,
+and the length is limited to 255
+characters. Such as: the
+personnel are not registered!
+recNotBioTtsMode Non-live
+speech mode
+Int N Non-live speech mode
+ 1: No voice broadcast (default)
+ 2: Voice broadcast "Do not try
+photos or video for recognition"
+ 100: Custom non-live speech
+recNotBioTtsCusto
+m
+Voice
+broadcast
+custom
+content
+String N Voice broadcast custom content,
+ If recNotBioTtsMode is 100, this
+field is mandatory and cannot
+be empty
+ Content is only allowed for
+numbers, English, and Chinese
+characters, and the length is
+limited to 255 characters. For
+example: do not try out photos
+or videos for identification
+recNotBioDisplayM
+ode
+Non-live
+screen display
+text type
+Int N Non-live screen display text type
+ 1: Do not try out photos or video
+for identification (default)
+ 100: Customize
+recNotBioDisplayCu
+stom
+Non-live
+screen
+displays text
+content
+String N Non-live screen displays text custom
+content
+ If recNotBioDisplayMode is
+100, this field is mandatory and
+cannot be empty
+ The content only allows digital,
+Chinese and Chinese symbols,
+and the length is limited to 255
+characters. For example: do not
+try out photos or videos for
+identification!
+
+--- PAGE 14 ---
+recNoPerTtsMode Insufficient
+permission for
+voice mode
+Int N Insufficient permission for voice
+mode
+ 1: Do not broadcast the voice
+message
+ 2: Voice broadcast "insufficient
+permission, please contact the
+administrator" (default)
+ 100: Custom permission is
+insufficient voice
+recNoPerTtsCusto
+m
+Voice
+broadcast
+custom
+content
+String N Voice broadcast custom content
+ If recNoPerTtsMode is 100, this
+field is mandatory and cannot
+be empty
+ Content is only allowed for
+numbers, English, and Chinese
+characters, and the length is
+limited to 255 characters. If the
+permission is insufficient, please
+contact the administrator
+recNoPerDisplayMo
+de
+Insufficient
+permission is
+required on
+the screen to
+display the
+text type
+Int N Insufficient permission is required on
+the screen to display the text type
+ 1 Insufficient privileges, please
+contact the administrator
+(default)
+ 100, and was custom-defined
+recNoPerDisplayCu
+stom
+Insufficient
+permission is
+required on
+the screen to
+display the
+text content
+String N Insufficient permission screen to
+display text custom content
+ If recNoPerDisplayMode is
+100, this field is mandatory and
+cannot be empty
+ The content only allows digital,
+Chinese and Chinese symbols,
+and the length is limited to 255
+characters. If: insufficient
+authority, please contact the
+administrator!
+recStrangerOpenDo
+or
+Identify
+whether the
+stranger
+opens the
+door
+Int N Identify whether the stranger opens
+the door
+ 0: Door is not open (default)
+ 1: Open the door
+recMultiplayer Identify many
+people
+Int N Identify many people
+ 0: Single-person identification
+(by default)
+ 1: Multiplayer identification
+recSnapshotSave Identify the
+snap snap
+Int N Identify the snap snap
+ 0: Not saved
+ 1: Save (by default)
+
+--- PAGE 15 ---
+recRecordSave Identify save
+records
+Int N Identify save records
+ 0: Not saved
+ 1: Save (by default)
+recRecordSaveDay
+s
+Identify the
+record holding
+days
+Int N Identify the number of days saved to
+default for 7 days
+recRecordUploadM
+ode
+Identify the
+record upload
+mode
+Int N Identify the record upload mode
+ 1: Real-time upload (by default)
+ 2: Break the point of continued
+transmission
+recWhitelistIdcard Witness
+comparison
+whitelist
+switch
+Int N Witness comparison whitelist switch
+ 0: off (default), read the ID card
+directly after the human card
+comparison process
+ 1: open, read the ID number
+and the ID number of all the
+personnel in the database, if
+any; if not, the prompt authority
+is insufficient
+recModeFaceEnabl
+e
+Face brush
+mode switch
+Int N Face brush mode switch
+ 0: Close
+ 1: On (by default)
+recModeCardEnabl
+e
+Card swiping
+mode switch
+Int N Card swiping mode switch
+ 0: Close
+ 1: On (by default)
+recModeCardIntf Card number
+transmission
+interface
+Int N Card number transmission interface
+ 1: egen (default)
+ 2: TTL serial port
+ 3 : USB
+recModeCardIntfPor
+t
+Card number
+transfer serial
+port number
+Int N Card number The port number of the
+transmission serial port
+This field takes effect when the
+transfer interface recModeCardIntf is
+configured as a serial port
+ 1 : ttyS1
+ 2 : ttyS2
+ 3: ttyS3 (by default)
+ 4 : ttyS4
+ 100: Customize
+
+--- PAGE 16 ---
+recModeCardIntfPor
+tCustom
+Custom card
+number
+transfer
+interface port
+number
+String N Customize the card number and
+define the port number of the
+transfer interface
+ This field takes effect when the
+transfer interface port
+recModeCardIntfPort is
+configured to 100
+recModeCardIntfBa
+udrate
+Card number
+transmission
+serial port port
+rate
+Int N The card number transmits the port
+rate of the serial port
+This field takes effect when the
+transfer interface recModeCardIntf is
+configured as a serial port
+ 1 : 9600
+ 2 : 19200
+ 3 : 38400
+ 4:115200 (by default)
+recModeIdcardEnab
+le
+Certificate
+comparison
+switch
+Int N Certificate comparison switch
+ 0: Off (by default)
+ 1: Open
+recModeIdcardIntf ID card
+module
+transmission
+interface
+Int N ID card module transmission
+interface
+ 1: TTL serial port
+ 2:232 serial port
+ 3: USB (by default)
+recModeIdcardIntfP
+ort
+ID card
+transmission
+serial port port
+number
+Int N Port number of the id card
+transmission serial port
+This field takes effect when the ID
+card transmission interface is
+configured as a serial port
+ 1 : ttyS1
+ 2: ttyS2 (by default)
+ 3 : ttyS3
+ 4 : ttyS4
+ 100: Customize
+recModeIdcardIntfP
+ortCustom
+Customize the
+ID card
+transmission
+interface port
+number
+String N Customize the port number of the ID
+card transmission interface
+This field takes effect when the ID
+transport interface port
+recModeIdcardIntfPort is configured
+to 100
+
+--- PAGE 17 ---
+recModeIdcardIntfB
+audrate
+ID card
+transmission
+serial port port
+rate
+Int N Baud rate of the ID card
+transmission serial port
+This field takes effect when the ID
+card transmission interface is
+configured as a serial port
+ 1 : 9600
+ 2 : 19200
+ 3 : 38400
+ 4:115200 (by default)
+recModeQrcodeEna
+ble
+Brush the QR
+code mode
+switch
+Int N Brush the QR code mode switch
+ 0: Off (by default)
+ 1: Open
+recModeQrcodeIntf The QR code
+transmission
+interface
+Int N The QR code transmission interface
+ 1: TTL serial port (by default)
+ 2:232 serial port
+ 3 : USB
+recModeQrcodeIntf
+Port
+QR code
+transmission
+serial port port
+number
+Int N Port number of the QR code
+transmission serial port
+This field takes effect when the
+recModeQrcodeIntf is configured as
+a serial port
+ 1 : ttyS1
+ 2: ttyS2 (by default)
+ 3 : ttyS3
+ 4 : ttyS4
+ 100: Customize
+recModeQrcodeIntf
+PortCustom
+Customize the
+QR code
+transmission
+interface port
+number
+String N Customize the port number of the
+QR code transmission interface
+This field takes effect when the QR
+code transmission interface port
+recModeQrcodeIntfPort is
+configured to 100
+recModeQrcodeIntf
+Baudrate
+QR code
+transmission
+serial port port
+rate
+Int N The port rate of the QR code
+transmission serial port
+This field takes effect when the
+recModeQrcodeIntfPort is
+configured as a serial port
+ 1 : 9600
+ 2 : 19200
+ 3 : 38400
+ 4:115200 (by default)
+
+--- PAGE 18 ---
+recModePalmEnabl
+e
+Palm print
+recognition
+switch
+Int N Palm print recognition switch
+ 0: Off (by default)
+ 1: Open
+recModeFingerEna
+ble
+Fingerprint
+recognition
+switch
+Int N Fingerprint recognition switch
+ 0: Off (by default)
+ 1: Open
+pciRelayOut relay output Int N relay output
+ 0: Not open the door
+ 1: Open the door (by default)
+pciRelayMode Relay mode Int N Relay mode
+ 1: Open often
+ 2: Often closed
+pciRelayDelay Relay control
+time
+Int N Relay control time
+ 1,000-ms (by default)
+ Relay controls the time interval
+between opening and closing,
+with the default 1000ms. Please
+enter an integer between 100
+and 25500 and take the
+hundred down. For example:
+input an integer between 101
+and 199, the actual effect is
+100ms.
+pciWgType Weigen type Int N Weigen type
+ 1: ergen 26 (default)
+ 2: Weigen-34
+ 1-3: Weigen-37
+pciWgOut Weigen
+output type
+Int N Weigen output type
+ 0: No output (default)
+ 1: Output the personnel id
+ 2: Output the card number
+ 100: Customize
+pciWgOutCustom Weigen
+outputs the
+custom
+content
+String N Weigen outputs the custom content
+This field takes effect when the root
+output type pciWgOut is configured
+to 100
+
+--- PAGE 19 ---
+pciComOut Serial port
+output type
+Int N Serial port output type
+ 0: No output (default)
+ 1: Output the personnel id
+ 2: Output the card number
+ 3: Output the ID card
+ 100: Customize
+pciComOutCustom Serial port
+output custom
+content
+String N Serial port output custom content
+This field takes effect when the
+serial port output type pciComOut is
+configured to be 100
+pciComOutPort Serial port
+output port
+Int N Serial port output port
+ 1 : ttyS1
+ 2 : ttyS2
+ 3 : ttyS3
+ 4 : ttyS4
+ 100: Customize
+pciComOutPortCust
+om
+Serial port
+output port
+customization
+String N Serial port output port customization
+This field takes effect when the
+serial port output port
+pciComOutPort is configured to 100
+pciComOutBaudrat
+e
+Serial output
+port rate
+Int N Serial output port rate
+ 1 : 9600
+ 2 : 19200
+ 3 : 38400
+ 4:115200 (by default)
+pciLedAlwaysEnabl
+e
+The light is
+often bright
+Int N The light is often bright
+ 0: Not always bright (default)
+ 1: Often bright
+pciLedColorStrange
+r
+Color of light
+color
+(stranger)
+Int N Color of light color (stranger)
+ 1: Red light (default)
+ 2: Green light
+uiCompanyName The interface
+displays the
+name of the
+company
+String N Whether the apk main interface
+shows the middleware server IP
+ 0: Hidden
+ 1: Display (by default)
+
+--- PAGE 20 ---
+uiShowSn The main
+interface
+displays the
+device serial
+number
+Int N Whether the apk main interface
+displays the device serial number
+ 0: Hidden
+ 1: Display (by default)
+uiShowIp Whether the
+main interface
+shows the
+middleware
+server IP
+Int N Whether the apk main interface
+shows the middleware server IP
+ 0: Hidden
+ 1: Display (by default)
+uiShowPersonCoun
+t
+Whether the
+main interface
+displays the
+number of
+people
+Int N Whether the apk main interface
+displays the number of people
+ 0: Hidden
+ 1: Display (by default)
+uiScreensaverWait Enter the
+screensaver
+for waiting
+time
+Int N The apk goes into the screensaver
+for waiting time in seconds
+sevUploadRecReco
+rdUrl
+To upload the
+url address of
+the
+identification
+record
+String N
+sevUploadDevHeart
+beatUrl
+To upload the
+url address of
+the device's
+heartbeat
+String N
+sevUploadDevHeart
+beatInterval
+Device
+heartbeat
+interval time
+Int N Device heartbeat interval time,
+default 60,10-300
+sevUploadRegPers
+onUrl
+Upload the
+registry
+person data
+url address
+String N
+sevUploadRecStran
+gerDataEnable
+Upload for
+identifying the
+stranger data
+switch
+Int N Whether to upload the identification
+stranger data switch
+ 0: No upload
+ 1: Upload (by default)
+
+--- PAGE 21 ---
+sevUploadRecSnap
+shotEnable
+Upload
+identification
+capture photo
+switch
+Int N Whether to upload the switch to
+identify the scratch photo
+ 0: No upload
+ 1: Upload (by default)
+sevUploadRecCard
+DataEnable
+Upload the
+identification
+of the credit
+card data
+switch
+Int N Whether to upload the data switch
+identifying identification card
+ 0: No upload
+ 1: Upload (by default)
+sevUploadRecIdcar
+dDataEnable
+Upload the
+identification
+of the ID card
+data switch
+Int N Whether to upload the identification
+ID card data switch
+ 0: No upload
+ 1: Upload (by default)
+sevUploadRecQrco
+deDataEnable
+Upload and
+identify the
+QR code data
+switch
+Int N Whether to upload the identification
+QR code data switch
+ 0: Not upload (default)
+ 1: Upload
+Postman instance
+Return an example
+
+--- PAGE 22 ---
+
+
+--- PAGE 23 ---
+3.5 Identify the configuration
+Description: Configure the recognition-related parameters of the face machine.
+When interface calling, if the corresponding parameters are not filled, use the system
+default parameters to set.
+Method URL
+POST http: / / middleware server IP: 8190 / api / device /
+setRecConfig
+Header land within certain boundaries
+parameter
+name
+descriptio
+n
+type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter name description type Mu
+st
+pa
+ss
+Additional instructions
+secret password String Y Server password set in the
+communication settings on the face
+device
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+recThreshold1vN The 1 vN
+face
+recognition
+threshold
+Int N Default of 65.
+Please input an integer between 50
+and 100, the higher the score, the
+higher the recognition accuracy, but
+the recognition speed will be slower.
+recThreshold1v1 1v1 face
+recognition
+threshold
+Int N ditto
+recInterval Identify
+interval time
+Int N Default 3 seconds.
+Identification interval (the interval
+between the callback notification
+interface after the same person).
+recDistance Identify
+distance
+Int N Identify distance:
+ 0: Unlimited (by default)
+ Within 1:0.5 m
+ Within 2:1 m
+ 3: within 1.5 meters
+ Within 4:2 meters
+ Within 5:3 meters
+ Within 6:4 meters
+
+--- PAGE 24 ---
+recRank Identify the
+living level
+Int N Identify living levels:
+ 1. No in-vivo test (by default)
+ 2. Monocular living animals
+ 3. Double eyes of the live body
+recSucTtsMode speech
+pattern
+Int N speech pattern:
+ 1. Do not broadcast the voice
+message
+ 2. Name Report (by default)
+ 100. Customize the voice
+broadcast
+recSucTtsCustom Voice self-
+determined
+content
+String N Voice self-determined content
+ Default {name}
+ If recSucTtsMode is 100, this field
+is mandatory and cannot be
+empty
+ Allow the {name}. Fixed field
+format, other content is allowed
+only for numbers, English and
+Chinese characters,
+ The length is limited to 255
+characters. Such as: {name}
+welcome to visit
+recSucDisplayMode Display mode Int N Display mode
+ 1: Name (default)
+ 2: Do not display the content
+ 100: Custom display
+recSucDisplayCustom Displays the
+custom
+content
+Int N Displays the custom content
+ Default {name}
+ If recSucDisplayMode is 100,
+this field is mandatory and cannot
+be empty
+ Allow the {name}. The field format
+is fixed, only numbers, English
+and Chinese symbols are allowed,
+and the length is limited to 255
+characters. Such as: {name},
+check-in successfully!
+recStrangerEnable Identify the
+stranger
+switch
+Int N Identify the stranger switch:
+ 0. Do not identify strangers
+ 1. Identify strangers (by default)
+recIsStrangerTimes Number of
+identification
+failure
+decisions
+Int N How many times do you fail to identify
+yourself as a stranger. Default 2 times
+
+--- PAGE 25 ---
+recStrangerTtsMode Stranger
+voice mode
+Int N Stranger voice mode
+ 1: No voice broadcast (default)
+ 2: Voice broadcast "personnel are
+not registered, please contact the
+administrator"
+ 100: Customize strangers' voice
+sounds
+recStrangerTtsCusto
+m
+Voice
+broadcast
+custom
+content
+String N Voice broadcast custom content,
+ If recStrangerTtsMode is 100, this
+field is mandatory and cannot be
+empty
+ Content is only allowed for
+numbers, English, and Chinese
+characters, and the length is
+limited to 255 characters. Pay
+attention to strangers
+recStrangerDisplayMo
+de
+The stranger
+screen
+displays the
+text type
+Int N The stranger screen displays the text
+type
+ 1. Personnel are not registered
+(by default)
+ 100. To customize it
+recStrangerDisplayCu
+stom
+The stranger
+screen
+displays the
+text content
+String N The stranger screen displays text
+custom content
+ If recStrangerDisplayMode is
+100, this field is mandatory and
+cannot be empty
+ The content only allows digital,
+Chinese and Chinese symbols,
+and the length is limited to 255
+characters. Such as: the
+personnel are not registered!
+recNotBioTtsMode Non-live
+speech mode
+Int N Non-live speech mode
+ 1: No voice broadcast (default)
+ 2: Voice broadcast "Do not try
+photos or video for recognition"
+ 100: Custom non-live speech
+recNotBioTtsCustom Voice
+broadcast
+custom
+content
+String N Voice broadcast custom content,
+ If recNotBioTtsMode is 100, this
+field is mandatory and cannot be
+empty
+ Content is only allowed for
+numbers, English, and Chinese
+characters, and the length is
+limited to 255 characters. For
+example: do not try out photos or
+videos for identification
+recNotBioDisplayMod
+e
+Non-live
+screen
+display text
+type
+Int N Non-live screen display text type
+ 1: Do not try out photos or video
+for identification (default)
+ 100: Customize
+
+--- PAGE 26 ---
+recNotBioDisplayCust
+om
+Non-live
+screen
+displays text
+content
+String N Non-live screen displays text custom
+content
+ If recNotBioDisplayMode is 100,
+this field is mandatory and cannot
+be empty
+ The content only allows digital,
+Chinese and Chinese symbols,
+and the length is limited to 255
+characters. For example: do not
+try out photos or videos for
+identification!
+recNoPerTtsMode Insufficient
+permission
+for voice
+mode
+Int N Insufficient permission for voice mode
+ 1: Do not broadcast the voice
+message
+ 2: Voice broadcast "insufficient
+permission, please contact the
+administrator" (default)
+ 100: Custom permission is
+insufficient voice
+recNoPerTtsCustom Voice
+broadcast
+custom
+content
+String N Voice broadcast custom content
+ If recNoPerTtsMode is 100, this
+field is mandatory and cannot be
+empty
+ Content is only allowed for
+numbers, English, and Chinese
+characters, and the length is
+limited to 255 characters. If the
+permission is insufficient, please
+contact the administrator
+recNoPerDisplayMod
+e
+Insufficient
+permission is
+required on
+the screen to
+display the
+text type
+Int N Insufficient permission is required on
+the screen to display the text type
+ 1 Insufficient privileges, please
+contact the administrator (default)
+ 100, and was custom-defined
+recNoPerDisplayCust
+om
+Insufficient
+permission is
+required on
+the screen to
+display the
+text content
+String N Insufficient permission screen to
+display text custom content
+ If recNoPerDisplayMode is 100,
+this field is mandatory and cannot
+be empty
+ The content only allows digital,
+Chinese and Chinese symbols,
+and the length is limited to 255
+characters. If: insufficient
+authority, please contact the
+administrator!
+recStrangerOpenDoor Identify
+whether the
+stranger
+opens the
+door
+Int N Identify whether the stranger opens
+the door
+ 0: Door is not open (default)
+ 1: Open the door
+
+--- PAGE 27 ---
+recMultiplayer Identify many
+people
+Int N Identify many people
+ 0: Single-person identification (by
+default)
+ 1: Multiplayer identification
+recSnapshotSave Identify the
+snap snap
+Int N Identify the snap snap
+ 0: Not saved
+ 1: Save (by default)
+recRecordSave Identify save
+records
+Int N Identify save records
+ 0: Not saved
+ 1: Save (by default)
+recRecordSaveDays Identify the
+record
+holding days
+Int N Identify the number of days saved to
+default for 7 days
+recRecordUploadMod
+e
+Identify the
+record upload
+mode
+Int N Identify the record upload mode
+ 1: Real-time upload (by default)
+ 2: Break the point of continued
+transmission
+recWhitelistIdcard Witness
+comparison
+whitelist
+switch
+Int N Witness comparison whitelist switch
+ 0: off (default), read the ID card
+directly after the human card
+comparison process
+ 1: open, read the ID number and
+the ID number of all the personnel
+in the database, if any; if not, the
+prompt authority is insufficient
+Postman instance
+Return an example
+
+--- PAGE 28 ---
+3.6 Identification mode configuration
+Description: Configure the recognition mode related parameters of the face machine.
+When interface calling, if the corresponding parameters are not filled, use the system
+default parameters to set.
+Method URL
+POST http: / / middleware server IP: 8190 / api / device /
+setRecModeConfig
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+
+--- PAGE 29 ---
+parameter
+name
+description type Must
+pass
+Additional instructions
+secret password String Y  Server password set in the
+communication settings on
+the face device
+deviceKey Device serial
+number
+String Y  Device Serial number, 16-bit
+recModeFaceEn
+able
+Face brush mode
+switch
+Int N Face brush mode switch
+ 0: Close
+ 1: On (by default)
+recModeCardEn
+able
+Card swiping
+mode switch
+Int N Card swiping mode switch
+ 0: Close
+ 1: On (by default)
+recModeCardIntf Card number
+transmission
+interface
+Int N Card number transmission
+interface
+ 1: egen (default)
+ 2: TTL serial port
+ 3 : USB
+recModeCardIntf
+Port
+Card number
+transfer serial
+port number
+Int N Card number The port number of
+the transmission serial port
+This field takes effect when the
+transfer interface
+recModeCardIntf is configured
+as a serial port
+ 1 : ttyS1
+ 2 : ttyS2
+ 3: ttyS3 (by default)
+ 4 : ttyS4
+ 100: Customize
+recModeCardIntf
+PortCustom
+Custom card
+number transfer
+interface port
+number
+String N Customize the card number and
+define the port number of the
+transfer interface
+This field takes effect when the
+transfer interface port
+recModeCardIntfPort is
+configured to 100
+recModeCardIntf
+Baudrate
+Card number
+transmission
+serial port port
+rate
+Int N The card number transmits the
+port rate of the serial port
+This field takes effect when the
+transfer interface
+recModeCardIntf is configured
+as a serial port
+ 1 : 9600
+ 2 : 19200
+ 3 : 38400
+ 4:115200 (by default)
+
+--- PAGE 30 ---
+recModeIdcardE
+nable
+Certificate
+comparison
+switch
+Int N Certificate comparison switch
+ 0: Off (by default)
+ 1: Open
+recModeIdcardIn
+tf
+ID card module
+transmission
+interface
+Int N ID card module transmission
+interface
+ 1: TTL serial port
+ 2:232 serial port
+ 3: USB (by default)
+recModeIdcardIn
+tfPort
+ID card
+transmission
+serial port port
+number
+Int N Port number of the id card
+transmission serial port
+This field takes effect when the
+ID card transmission interface is
+configured as a serial port
+ 1 : ttyS1
+ 2: ttyS2 (by default)
+ 3 : ttyS3
+ 4 : ttyS4
+ 100: Customize
+recModeIdcardIn
+tfPortCustom
+Customize the ID
+card
+transmission
+interface port
+number
+String N Customize the port number of
+the ID card transmission
+interface
+This field takes effect when the
+ID transport interface port
+recModeIdcardIntfPort is
+configured to 100
+recModeIdcardIn
+tfBaudrate
+ID card
+transmission
+serial port port
+rate
+Int N Baud rate of the ID card
+transmission serial port
+This field takes effect when the
+ID card transmission interface is
+configured as a serial port
+ 1 : 9600
+ 2 : 19200
+ 3 : 38400
+ 4:115200 (by default)
+recModeQrcode
+Enable
+Brush the QR
+code mode
+switch
+Int N Brush the QR code mode switch
+ 0: Off (by default)
+ 1: Open
+recModeQrcodeI
+ntf
+The QR code
+transmission
+interface
+Int N The QR code transmission
+interface
+ 1: TTL serial port (by
+default)
+ 2:232 serial port
+ 3 : USB
+
+--- PAGE 31 ---
+recModeQrcodeI
+ntfPort
+QR code
+transmission
+serial port port
+number
+Int N Port number of the QR code
+transmission serial port
+This field takes effect when the
+recModeQrcodeIntf is configured
+as a serial port
+ 1 : ttyS1
+ 2: ttyS2 (by default)
+ 3 : ttyS3
+ 4 : ttyS4
+ 100: Customize
+recModeQrcodeI
+ntfPortCustom
+Customize the
+QR code
+transmission
+interface port
+number
+String N Customize the port number of
+the QR code transmission
+interface
+This field takes effect when the
+QR code transmission interface
+port recModeQrcodeIntfPort is
+configured to 100
+recModeQrcodeI
+ntfBaudrate
+QR code
+transmission
+serial port port
+rate
+Int N The port rate of the QR code
+transmission serial port
+This field takes effect when the
+recModeQrcodeIntfPort is
+configured as a serial port
+ 1 : 9600
+ 2 : 19200
+ 3 : 38400
+ 4:115200 (by default)
+recModePalmEn
+able
+Palm print
+recognition
+switch
+Int N Palm print recognition switch
+ 0: Off (by default)
+ 1: Open
+recModeFingerE
+nable
+Fingerprint
+recognition
+switch
+Int N Fingerprint recognition switch
+ 0: Off (by default)
+ 1: Open
+Postman instance
+Return an example
+
+--- PAGE 32 ---
+Code code description
+code a sign or object
+indicating number
+msg
+100201 Device restart failed without ROOT
+3.7 Peripheral configuration
+Description: Configure the relevant parameters of the peripheral mode of the face
+machine.
+When interface calling, if the corresponding parameters are not filled, use the system
+default parameters to set.
+Method URL
+POST http: / / middleware server IP: 8190 / api / device / setPciConfig
+
+--- PAGE 33 ---
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device
+serial
+number
+String Y  Device Serial number, 16-bit
+secret password String Y  Server password set in the
+communication settings on the
+face device
+pciRelayOut relay output Int N relay output
+ 0: Not open the door
+ 1: Open the door (by default)
+pciRelayMode Relay mode Int N Relay mode
+ 1: Open often
+ 2: Often closed
+pciRelayDelay Relay
+control time
+Int N Relay control time
+ 1,000-ms (by default)
+ Relay controls the time interval
+between opening and closing,
+with the default 1000ms. Please
+enter an integer between 100
+and 25500 and take the hundred
+down. For example: input an
+integer between 101 and 199,
+the actual effect is 100ms.
+pciWgType Weigen type Int N Weigen type
+ 1: ergen 26 (default)
+ 2: Weigen-34
+ 1-3: Weigen-37
+pciWgOut Weigen
+output type
+Int N Weigen output type
+ 0: No output (default)
+ 1: Output the personnel id
+ 2: Output the card number
+pciComOut Serial port
+output type
+Int N Serial port output type
+ 0: No output (default)
+ 1: Output the personnel id
+ 2: Output the card number
+ 3: Output the ID card
+ 100: Customize
+
+--- PAGE 34 ---
+pciComOutCust
+om
+Serial port
+output
+custom
+content
+String N Serial port output custom content
+This field takes effect when the serial
+port output type pciComOut is
+configured to be 100
+pciComOutPort Serial port
+output port
+Int N Serial port output port
+ 1 : ttyS1
+ 2 : ttyS2
+ 3 : ttyS3
+ 4 : ttyS4
+ 100: Customize
+pciComOutPortC
+ustom
+Serial port
+output port
+customizatio
+n
+String N Serial port output port customization
+This field takes effect when the serial
+port output port pciComOutPort is
+configured to 100
+pciComOutBaud
+rate
+Serial output
+port rate
+Int N Serial output port rate
+ 1 : 9600
+ 2 : 19200
+ 3 : 38400
+ 4:115200 (by default)
+pciLedAlwaysEn
+able
+The light is
+often bright
+Int N The light is often bright
+ 0: Not always bright (default)
+ 1: Often bright
+pciLedColorStra
+nger
+Color of light
+color
+(stranger)
+Int N Color of light color (stranger)
+ 1: Red light (default)
+ 2: Green light
+Postman instance
+Return an example
+
+--- PAGE 35 ---
+3.8 Interface display configuration
+Description: Configure the relevant parameters of the interface display of the face
+machine.
+When interface calling, if the corresponding parameters are not filled, use the system
+default parameters to set.
+Method URL
+POST http: / / middleware server IP: 8190 / api / device /
+setUiConfig
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y  Device Serial number, 16-bit
+secret password String Y  Server password set in the
+communication settings on
+the face device
+uiCompanyNa
+me
+The interface
+displays the
+name of the
+company
+String N Company name as displayed on
+the apk interface
+
+--- PAGE 36 ---
+uiShowSn The main
+interface
+displays the
+device serial
+number
+Int N Whether the apk main interface
+displays the device serial number
+ 0: Hidden
+ 1: Display (by default)
+uiShowIp Whether the
+main interface
+shows the
+middleware
+server IP
+Int N Whether the apk main interface
+shows the middleware server IP
+ 0: Hidden
+ 1: Display (by default)
+uiShowPerson
+Count
+Whether the
+main interface
+displays the
+number of
+people
+Int N Whether the apk main interface
+displays the number of people
+ 0: Hidden
+ 1: Display (by default)
+uiScreensaver
+Wait
+Enter the
+screensaver for
+waiting time
+Int N  The apk goes into the
+screensaver for waiting time
+in seconds
+Postman instance
+Return an example
+
+
+--- PAGE 37 ---
+3.9 Server configuration
+Description: Configure the server-related parameters of the face machine.
+When interface calling, if the corresponding parameters are not filled, use the system
+default parameters to set.
+Method URL
+POST http: / / middleware server IP: 8190 / api /
+device /setSevConfig
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter name description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+sevUploadRecReco
+rdUrl
+To upload the
+url address of
+the
+identification
+record
+String N The callback address needs to
+meet the regular expression:
+((http | https): / /) ((a-zA-Z0-9
+\._-{2,6})|(0-9{1,3}\.0-9{1,3}))(:0-
+9*)?
+sevUploadDevHeart
+beatUrl
+To upload the
+url address of
+the device's
+heartbeat
+String N ditto
+sevUploadRegPers
+onUrl
+Upload the
+registry person
+data url
+address
+String N ditto
+sevUploadRegFing
+erUrl
+The url address
+for uploading
+the registered
+fingerprint data
+String N ditto
+sevUploadAlarmUrl The url address
+for uploading
+the alarm data
+String N ditto
+sevUploadDevHeart
+beatInterval
+Device
+heartbeat
+interval time
+Int N  Device heartbeat interval
+time, default 60,10-300
+
+--- PAGE 38 ---
+sevUploadRecStran
+gerDataEnable
+Upload for
+identifying the
+stranger data
+switch
+Int N Whether to upload the
+identification stranger data switch
+ 0: No upload
+ 1: Upload (by default)
+sevUploadRecSnap
+shotEnable
+Upload
+identification
+capture photo
+switch
+Int N Whether to upload the recognition
+capture photo switch
+ 0: No upload
+ 1: Upload (by default)
+sevUploadRecCard
+DataEnable
+Upload the
+identification of
+the credit card
+data switch
+Int N Whether to upload the data
+switch identifying identification
+card
+ 0: No upload
+ 1: Upload (by default)
+sevUploadRecIdcar
+dDataEnable
+Upload the
+identification of
+the ID card
+data switch
+Int N Whether to upload the
+identification ID card data switch
+ 0: No upload
+ 1: Upload (by default)
+sevUploadRecQrco
+deDataEnable
+Upload and
+identify the QR
+code data
+switch
+Int N Whether to upload the
+identification QR code data switch
+ 0: Not upload (default)
+ 1: Upload
+Postman instance
+Return an example
+
+--- PAGE 39 ---
+3.10 Remote control output (including door opening)
+Note: Remote control of face recognition device to open the door, serial port output,
+Weigen output, custom pop-up window, voice broadcast
+Method URL
+POST http: / / middleware server IP: 8190 / api /
+device / output
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y  Device Serial number, 16-bit
+secret password String Y  Server password set in the
+communication settings on the
+face device
+
+--- PAGE 40 ---
+type Remote
+output
+interaction
+type
+Int Y Type of device interaction
+ 1: Open the door (by default)
+ 2: String mouth
+ 3: Weigen
+ 4: Custom text popup, custom
+voice broadcast
+content Remote
+output
+content
+String N  Interaction type is set to 1:
+without setting when opening the
+door
+ Interaction type is set to 2:
+When the serial port, the content
+only allows numbers, English
+and English characters, and the
+length is limited to 255
+characters.
+ When the interaction type is set
+to 3, only numbers are allowed.
+ Interaction type is set to 4: when
+custom pop-up and voice
+broadcast, the content is set to
+JSON string
+Remote output content content JSON string example when the output type is
+set to 4:
+Postman instance
+Return an example
+
+--- PAGE 41 ---
+Code code description
+code a sign or object
+indicating number
+msg
+100501 The value of content cannot be empty
+100502 The length limit of the content is within 255 characters
+100503 content, The value of which allows only for numbers
+100504 The value of content is a non-interface definition, please
+consult the interface documentation
+3.11 Set up the wired network
+Description: Set the other wired network configuration such as the DHCP mode of
+the face recognition device. The fixed IP of this interface setting is suitable for the
+network cable connection
+Method URL
+POST http: / / middleware server IP: 8190 / api / device /
+setNetwork
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter name description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the face
+device
+
+--- PAGE 42 ---
+dhcpEnable DHCP, mode
+selection
+Int Y DHCP, mode selection
+ 0: Set IP mode manually, other
+parameters except subnetMask
+must be incoming and not
+empty
+ 1: Get IP mode dynamically
+without passing in other
+parameters
+ip ip address String N Set up the static IP address of the
+face recognition device
+gateway gateway String N Set the gateway
+subnetMask subnet mask String N Set the subnet mask
+dns DNS server String N Set up the DNS server
+Postman instance
+Return an example
+
+
+--- PAGE 43 ---
+3.12 Set up the upload address
+Description: Set up the reported address configuration of the face recognition device
+Method URL
+POST http: / / middleware server IP: 8190 / api / device /
+setUploadUrl
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the face
+device
+data List<Object> List<Object> Y Report address parameters
+Object .type Configure the
+type of
+reported data
+url
+Int Y Configure the type of reported data
+url
+ 0: Empty all the reported
+addresses
+ 1: heartbeat report
+ 2: Report the identification
+record
+ 3: Report the data of the
+registered personnel
+ 4: Reporting of fingerprint
+registration data
+ 5: Report the anti-disassembly
+alarm data
+Object .url Configuration
+of url
+String N The upload address needs to
+meet the regular expression:
+((http | https): / /) ((A-zA-Z0-9 \._-
+{2,6})|(0-9{1,3}\.0-9{1,3}))(:0-9*)?
+Description of the data request parameter:
+
+--- PAGE 44 ---
+Postman instance
+Return an example
+Identify the record reporting request parameters description:
+parameter name type Additional instructions
+deviceKey String Device Serial number, 16-bit
+recordId String Unique identification of the identification record
+personSn String Personnel number
+
+--- PAGE 45 ---
+personType Int Person type 0: Unknown 1: Employee 2: Guest
+3: Blacklist
+verifyStyle Int verification mode
+ 0: Any
+ 1: Only the human face
+ 2: swipe the card only
+ 20: Card + human face
+ 21: Card + fingerprint
+ 3: The fingerprint is the only one
+ 30: Fingerprint + human face
+checkImgUrl String Snap photos of the LAN path
+checkImgBase64 String Snap the photo imgBase64 string
+cardNo String card number
+idCard String ID number
+voucherCode String Certificate number
+temperature String temperature
+attach String AI
+maskFlag Int Mask mark 0: no mask 1: have a mask
+capFlag Int Hat logo 0: No hat 1: No hat 1
+faceFlag Int Face brushing id 0: No 1: Yes
+cardFlag Int Card 0: No 1: Yes
+fingerFlag Int Fingerprint identification: 0: No.1: Yes
+
+--- PAGE 46 ---
+idCardFlag Int ID ID 0: No 1: Yes
+pwdFlag Int Password ID 0: No 1: Yes
+palmFlag Int Palmprint logo: 0: No 1: Yes
+resultFlag Int Identification result identification 1: success 2:
+failure 3: Insufficient permissions
+strangerFlag Int Stranger ID 0: No 1: Yes
+openDoorFlag Int Open door sign 0: No 1: Yes
+recordTime Long Passage time, Unix millisecond timestamp (13
+bits)
+Identify the reported request response string:
+Note If the string is not responded correctly, the record is
+uploaded repeatedly
+Description of the heartbeat report request parameters:
+ The device will report the address POST and heartbeat information to the
+heartbeat every other minute
+ No return information, and the device is not processed
+parameter name type Additional instructions
+deviceKey String Device Serial number, 16-bit
+time Long Request time, Unix millisecond timestamp (13-
+bit)
+ip String equipment IP
+personCount Int Number of personnel
+faceCount Int The number of photos
+
+--- PAGE 47 ---
+version String Device version number
+freeDiskSpace String Remaining disk space unit: M
+Description of personnel registration report request parameters:
+ When the device creation personnel registers the address POST, personnel
+information
+ No return information, and the device is not processed
+parameter name type Additional instructions
+deviceKey String Device Serial number, 16-bit
+personType Int Type of personnel
+ 1 Internal staff
+ 2 Visitors
+ 3 Blacklist
+personSn String Personnel number / worker number
+name String Name of personnel
+mobile String cell-phone number
+cardNo String card number
+idCard String ID number
+verifyPwd String password
+voucherCode String Certificate number
+acGroupNumber Int Access control group number
+
+--- PAGE 48 ---
+verifyStyle Int verification mode
+ 0: Any
+ 1: Only the human face
+ 2: swipe the card only
+ 20: Card + human face
+ 21: Card + fingerprint
+ 3: The fingerprint is the only one
+ 30: Fingerprint + human face
+expiredType Int Exdate type
+ 0 Never expire
+ 1 Time
+ 2 Times
+ 3 for time + times
+validCount Int effective degree
+validTimeBegin Long Effective time start, Unix millisecond
+timestamp (13-bit)
+validTimeEnd Long Effective time end, Unix millisecond timestamp
+(13-bit)
+acTzNumber1 Int Access period 1 number
+acTzNumber2 Int Access period 2 number
+acTzNumber3 Int Time period # 3
+updateTime Long Update time, Unix millisecond timestamp
+(13-bit)
+createTime Long Creation time, Unix millisecond-level
+timestamp (13-bit)
+Description of parameters of fingerprint registration report request:
+ When the device creates the person with the fingerprint, the address POST,
+fingerprint information
+ No return information, and the device is not processed
+parameter name type Additional instructions
+
+--- PAGE 49 ---
+deviceKey String Device Serial number, 16-bit
+personSn String Personnel number / worker number
+fingerId String Unique identification of the fingerprint feature
+values
+fingerNum Int Finger serial number, several fingers, 2 digits
+ The first place identifies the left and right
+hand, 1 left hand and 2 right hand
+ The second digit identifies the finger, 1
+thumb, 2 index finger, 3 middle finger, 4 ring
+finger and 5 little thumb
+feature String Fingerprint feature value
+time Long Registration time, Unix millisecond
+timestamp (13-bit)
+3.13 APK upgrade
+Description: Set up the reported address configuration of the face recognition device
+Method URL
+POST http: / / middleware server IP: 8190 / api / device /
+upgradeApk
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter name description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the face
+device
+
+--- PAGE 50 ---
+versionCode apk version
+number
+Int Y Upgrade the APK version number
+channel Channel
+number
+String Y The channel number of the
+equipment
+apkUpgradeUrl The apk
+upgrade
+address
+String Y The apk upgrade address needs
+to meet the regular expressions:
+((http | https): / /) ((a-zA-Z0-9 \._-
+{2,6})|(0-9{1,3}\.0-9{1,3}))(:0-9*)?
+4. Personnel management interface
+4.1 Personnel creation
+Description: Create different types of users on a face recognition device
+Method URL
+POST http: / / middleware server IP: 8190 / api /
+person / create
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter name description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y  Device Serial number, 16-bit
+secret password String Y  Server password set in the
+communication settings on the
+face device
+type Type of
+personnel
+Int Y Type of personnel
+ 1: Internal staff
+ 2: Visitors
+ 3: Blacklist
+
+--- PAGE 51 ---
+sn job number String Y Unique identification of personnel
+Cannot duplicate personnel creation
+with another employee number
+Only numbers and English letters
+are allowed, case sensitive
+name surname and
+personal name
+String Y Name of personnel
+cardNo card number String N Card number, can not be filled when
+created, the length is unlimited.
+If the registration person fills in the
+card number, you can directly brush
+the card corresponding to the card
+number for identification, and the
+screen will also show the name of
+the person corresponding to the card
+number
+idCard ID number String N
+mobile cell-phone
+number
+String N
+verifyPwd password String N TODO
+voucherCode Certificate
+number
+String N TODO
+acGroupNumber Access control
+group number
+Int N Corresponding access control
+authority group number of the
+personnel
+When set to 0, means that personnel
+does not set access authority group
+(default)
+verifyStyle verification
+mode
+Int N This field takes effect when the
+access authority group is set to 0
+ 0: Any
+ 1: Only the human face
+ 2: swipe the card only
+ 20: Card + human face
+ 21: Card + fingerprint
+ 3: The fingerprint is the
+
+--- PAGE 52 ---
+only one
+ 30: Fingerprint + human face
+expiredType Exdate type Int N The expired type of the person
+ 0: Never expired (default)
+ 1: Time period
+ 2: Number TODO
+ 3: Time + times TODO
+validTimeBegin Effective time
+begins
+Long N Personnel shelf life start time, Unix
+millisecond timestamp (13-bit)
+If the personnel identifies outside the
+validity period, the device will
+broadcast "insufficient name
+permission", and the device screen
+will display "name + insufficient
+permission"
+validTimeEnd The effective
+time is over
+Long N Personnel expiration date end time,
+Unix millisecond timestamp (13 bit)
+If the personnel identifies outside the
+validity period, the device will
+broadcast "insufficient name
+permission", and the device screen
+will display "name + insufficient
+permission"
+Postman instance
+Return an example
+
+--- PAGE 53 ---
+4.2 Personnel update
+Description: Update the user information on the face recognition device
+Method URL
+POST http: / / middleware server IP: 8190 / api /
+person / update
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y  Device Serial number, 16-bit
+secret password String Y  Server password set in the
+communication settings on the
+face device
+type Type of
+personnel
+Int Y Type of personnel
+ 1: Internal staff
+ 2: Visitors
+ 3: Blacklist
+
+--- PAGE 54 ---
+sn job number String Y Personnel unique identification,
+When updating, modify the database
+information in the equipment
+according to the work number. When
+the corresponding work number
+does not exist, the modification will
+fail.
+Only numbers and English letters
+are allowed, case sensitive
+name surname and
+personal name
+String Y Name of personnel
+cardNo card number String N Card number, can not be filled when
+created, the length is unlimited.
+If the registration person fills in the
+card number, you can directly brush
+the card corresponding to the card
+number for identification, and the
+screen will also show the name of
+the person corresponding to the card
+number
+idCard ID number String N
+mobile cell-phone
+number
+String N
+verifyPwd password String N TODO
+voucherCode Certificate
+number
+String N TODO
+acGroupNum
+ber
+Access control
+group number
+Int N Corresponding access control
+authority group number of the
+personnel
+When set to 0, means that personnel
+does not set access authority group
+(default)
+verifyStyle verification
+mode
+Int N This field takes effect when the
+access authority group is set to 0
+ 0: Any
+ 1: Only the human face
+ 2: swipe the card only
+
+--- PAGE 55 ---
+ 20: Card + human face
+ 21: Card + fingerprint
+ 3: The fingerprint is the
+only one
+ 30: Fingerprint + human face
+expiredType Exdate type Int N The expired type of the person
+ 0: Never expired (default)
+ 1: Time period
+ 2: Number TODO
+ 3: Time + times TODO
+validTimeBegi
+n
+Effective time
+begins
+Long N Personnel shelf life start time, Unix
+millisecond timestamp (13-bit)
+If the personnel identifies outside the
+validity period, the device will
+broadcast "insufficient name
+permission", and the device screen
+will display "name + insufficient
+permission"
+validTimeEnd The effective
+time is over
+Long N Personnel expiration date end time,
+Unix millisecond timestamp (13 bit)
+If the personnel identifies outside the
+validity period, the device will
+broadcast "insufficient name
+permission", and the device screen
+will display "name + insufficient
+permission"
+Postman instance
+Return an example
+
+--- PAGE 56 ---
+4.3 Personnel deletion
+Note: Delete the personnel information corresponding to the work number on the
+face recognition device
+Method URL
+POST http: / / middleware server IP: 8190 / api /
+person / delete
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device
+serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the face
+device
+sn job number List<String> Y To delete the employee number
+collection, multiple split with a
+comma
+Postman instance
+
+--- PAGE 57 ---
+Return an example
+4.4 Personnel clearance
+Description: Empty the information from all users on the device
+Method URL
+POST http: / / middleware server IP: 8190 / api /
+person / attribute
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the face
+device
+
+--- PAGE 58 ---
+Postman instance
+Return an example
+4.5 Personnel search
+Description: Find the corresponding user information according to the user's job
+number, ID number, card number
+Method URL
+POST http: / / middleware server IP: 8190 / api /
+person / find
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Mus
+t
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y  Device Serial number, 16-bit
+secret password String Y  Server password set in the
+communication settings on the
+face device
+
+--- PAGE 59 ---
+type Find the type Int Y Find the type
+ 1: Work number
+ 2: ID card
+ 3: Card number
+key The
+corresponding
+query data
+String Y
+Postman instance
+Return an example
+4.6 Personnel list search
+Description: Paged to query all user information
+Method URL
+POST http: / / middleware server IP: 8190 / api /
+person / findList
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+
+--- PAGE 60 ---
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the face
+device
+index page number Int Y Page number, starting at 1
+length Query
+quantity
+Int N The number of users per page,
+default 20
+Postman instance
+Return an example
+
+--- PAGE 61 ---
+4.7 Create or update of personnel traffic period
+Note: Set the corresponding passage period from Monday to Sunday. Users who
+pass outside the pass period will show insufficient authority and verification failure
+Method URL
+POST P: http: / / middleware server IP: 8190 / api / person /
+passtime / merge
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+
+--- PAGE 62 ---
+sn job number List<String> Y Person employee number
+collection, multiple worker
+numbers are divided with
+comma
+passtimeList Pass time String N Json string during traffic time
+Up to 3 sets are allowed. If only
+1 section is set, the last two
+paragraphs can not be passed
+on
+Passing time string, the format
+is start time-end time, the time
+format is HH: mm, example:
+00:00-23:59 middle use-
+separated
+passtimeList Example of the request parameters:
+Postman instance
+Return an example
+
+--- PAGE 63 ---
+4.8 Delete the personnel travel period
+Note: Remove the travel time limit set for users
+Method URL
+POST http: / / middleware server IP: 8190 / api / person /
+passtime / delete
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+
+--- PAGE 64 ---
+secret password String Y Server password set in the
+communication settings on the
+face device
+sn page number List<String> Y Person employee number
+collection, multiple employee
+numbers are separated by
+comma
+Postman instance
+Return an example
+4.9 Personnel creation or update
+Description: Create different types of users on a face recognition device, and update
+the person information if this person already exists
+Method URL
+POST And http: / / device IP: 8190 / api / js / person /
+merge
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+
+--- PAGE 65 ---
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y  Device Serial number, 16-bit
+secret password String Y  Server password set in the
+communication settings on the face
+device
+type Type of
+personnel
+Int Y Type of personnel
+ 1: Internal staff
+ 2: Visitors
+ 3: Blacklist
+sn job number String Y Unique identification of personnel
+Cannot duplicate personnel creation with
+another employee number
+Only numbers and English letters are
+allowed, case sensitive
+Update the person information if it
+already exists
+name surname and
+personal name
+String Y Name of personnel
+cardNo card number String N Card number, can not be filled when
+created, the length is unlimited.
+If the registration person fills in the card
+number, you can directly brush the card
+corresponding to the card number for
+identification, and the screen will also
+show the name of the person
+corresponding to the card number
+idCard ID number String N
+mobile cell-phone
+number
+String N
+
+--- PAGE 66 ---
+verifyPwd password String N
+voucherCod
+e
+Certificate
+number
+String N
+acGroupNu
+mber
+Access control
+group number
+Int N Corresponding access control authority
+group number of the personnel
+When set to 0, means that personnel
+does not set access authority group
+(default)
+verifyStyle verification
+mode
+Int N This field takes effect when the access
+authority group is set to 0
+ 0: Any
+ 1: Only the human face
+ 2: swipe the card only
+ 20: Card + human face
+ 21: Card + fingerprint
+ 3: The fingerprint is the only
+one
+ 30: Fingerprint + human face
+expiredType Exdate type Int N The expired type of the person
+ 0: Never expired (default)
+ 1: Time period
+ 2: Number TODO
+ 3: Time + times TODO
+validTimeBe
+gin
+Effective time
+begins
+Long N Personnel shelf life start time, Unix
+millisecond timestamp (13-bit)
+If the personnel identifies outside the
+validity period, the device will broadcast
+"insufficient name permission", and the
+device screen will display "name +
+insufficient permission"
+validTimeEn
+d
+The effective
+time is over
+Long N Personnel expiration date end time, Unix
+millisecond timestamp (13 bit)
+If the personnel identifies outside the
+validity period, the device will broadcast
+"insufficient name permission", and the
+device screen will display "name +
+insufficient permission"
+Postman instance
+
+--- PAGE 67 ---
+Return an example
+5. Face management interface
+5.1 Face creation or update
+Note: Register the face recognition photo of the corresponding person through the
+job number
+Method URL
+POST http: / / middleware server IP: 8190 / api / face /
+merge
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+descripti
+on
+type Must
+pass
+Additional instructions
+
+--- PAGE 68 ---
+deviceKey Device
+serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the face
+device
+personSn Person
+employee
+number
+String Y Personnel number, must first be
+registered personnel
+imgUrl job
+number
+String Y Photo of the LAN url address
+Photos only support http protocol store
+location pictures
+imgBase64 surname
+and
+personal
+name
+String  Photo of the base64 encoded string
+ Photo format support for PNG, JPG,
+JPEF;
+ imgBase64 Remove heads such as:
+data: image / jpeg; base64
+easy card
+number
+Int N Test the grade of the quality of the
+photos
+ 0: Strictly test the photo quality
+ 1: loose test photo quality
+Request instructions
+ You must add people before you add pictures
+ imgUrl And imgBase64 parameters are required
+ Photo format support for PNG, JPG, JPEF;
+Postman instance
+Return an example
+
+--- PAGE 69 ---
+5.2 face deletion
+Note: Delete the face recognition photos of the corresponding person through the
+work number
+Method URL
+POST The http: / / middleware server IP: 8190 / api /
+face / delete
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+descripti
+on
+type Must
+pass
+Additional instructions
+deviceKey Device
+serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the face
+device
+sn Human
+employee
+number
+collection
+List<Stri
+ng>
+Y People numbers are set, and multiple
+people are split by comma
+Postman instance
+
+--- PAGE 70 ---
+Return an example
+5.3 Face search
+Description: Query the photo imgBase64 code of the corresponding person on the
+face recognition device
+Method URL
+POST The http: / / middleware server IP: 8190 /
+api/face/find
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on
+the face device
+personSn Personnel
+number
+String Y Personnel number
+
+--- PAGE 71 ---
+Postman instance
+Return an example
+Return the parameter data description:
+parameter name type Additional instructions
+personSn String Work number of personnel
+imgBase64 String The imgbase64 encoding of the photo
+featureData String Face eigenvalue
+Vi. Record and management interface
+6.1 Search of traffic record list
+Note: query the traffic record of the corresponding personnel on the face recognition
+equipment
+Method URL
+POST http: / / middleware server IP: 8190 / api / record
+/ findList
+Header land within certain boundaries
+
+--- PAGE 72 ---
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+startTime Start time
+stamp of the
+query
+Long Y Unix millisecond-level
+timestamp (13-bit)
+endTime End
+timestamp of
+the query
+Long Y ditto
+personSn job number String N Query the specified user work
+number, do not pass this
+parameter will query all
+personType Type of
+personnel
+Int N Person type of the query record
+ -1: All (by default)
+ 0: Unknown
+ 1: Employees
+ 2: Visitors
+ 3: Blacklist
+recordType Find the type Int N The type of record to be
+quer@@
+ 0: All (by default)
+ 1: Brush your face
+ 2: swipe a card
+ 3: Card + human face
+ 4: Fingerprint
+index page number Int N Page number, starting at 1
+length Query the
+number of
+records
+Int N Number of records per query,
+with a default of 20
+order Sort the way Int N Sort the way
+ 0: descending order
+(default)
+ 1: The ascending order
+Postman instance
+
+--- PAGE 73 ---
+Return an example
+Return a description of the parameter data array:
+parameter name type Additional instructions
+id Long Record unique identification
+
+--- PAGE 74 ---
+personSn String The job number of the photographer
+personName String The name of the snap person
+personType Int Person type of the query record
+ 0: Unknown
+ 1: Employees
+ 2: Visitors
+ 3: Blacklist
+checkImgUrl String Take a snap photo of the LAN address
+cardNo String card number
+idCard String ID number
+temperature String temperature
+attach String AI
+maskFlag Int Wear a mask? 1: Yes 0: No
+capFlag Int Whether to wear a safety helmet: 1: Yes:
+0: No
+faceFlag Int Is it a face-brushing passage 1: Yes 0: No
+cardFlag Int Is it a credit card pass 1: Yes 0: No
+fingerFlag Int Is it a brush fingerprint pass 1: Yes 0: No
+idCardFlag Int Whether it is a brush ID card pass 1: Yes
+0: no
+pwdFlag Int Is it a check password to pass through 1:
+Yes 0: No
+resultFlag Int Identification result identification 1:
+success 2: failure 3: Insufficient
+permissions
+
+--- PAGE 75 ---
+strangerFlag Int Is it a stranger? 1: Yes 0: No
+openDoorFlag Int Open the door? 1: Yes 0: No
+createTime Long transit time,
+6.2 Delete the traffic records
+Note: Delete the traffic record of the corresponding time period on the personnel
+identification equipment
+Method URL
+POST http: / / middleware server IP: 8190 / api / record
+/ delete
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+startTime Start the
+timestamp
+Long Y Unix millisecond-level timestamp
+(13-bit)
+endTime End time
+stamp
+Long Y ditto
+personSn job number String N Delete the record of the specified
+user work number, and delete all
+without passing this parameter
+
+--- PAGE 76 ---
+personType Type of
+personnel
+Int N The person type that delete the
+record
+ -1: All (by default)
+ 0: Unknown
+ 1: Employees
+ 2: Visitors
+ 3: Blacklist
+recordType Find the type Int N Delete the type of the record
+ 0: All (by default)
+ 1: Brush your face
+ 2: swipe a card
+ 3: Card + human face
+ 4: Fingerprint
+recordId Record
+unique
+identification
+Int N Record unique identification
+Corresponding to the traffic
+record search interface response
+information in the data, the id in
+the parameter
+Postman instance
+Return an example
+6.3 Search for traffic records
+
+--- PAGE 77 ---
+Note: Query the traffic records of the corresponding personnel on the face
+recognition device, including the imgBase64 code of the captured photos
+Method URL
+POST http: / / middleware server IP: 8190 / api / record
+/ find
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+recordId Pass record
+id
+Long Y Unique identification of the
+record in the return information
+of the record search interface
+interface specification
+ One more checkImgBase64 snap photo imgBase64 code than the return
+information of the traffic record list search interface
+Postman instance
+Return an example
+
+--- PAGE 78 ---
+Return a description of the parameter data array:
+parameter name type Additional instructions
+id Long Record unique identification
+personSn String The job number of the photographer
+personName String The name of the snap person
+personType Int Person type of the query record
+ 0: Unknown
+ 1: Employees
+ 2: Visitors
+ 3: Blacklist
+checkImgUrl String Take a snap photo of the LAN address
+checkImgBase64 String The imgbase64 code of the snap photo
+cardNo String card number
+idCard String ID number
+voucherCode String Certificate number
+
+--- PAGE 79 ---
+temperature String temperature
+attach String AI
+maskFlag Int Wear a mask? 1: Yes 0: No
+capFlag Int Whether to wear a safety helmet: 1: Yes:
+0: No
+faceFlag Int Is it a face-brushing passage 1: Yes 0: No
+cardFlag Int Is it a credit card pass 1: Yes 0: No
+fingerFlag Int Is it a brush fingerprint pass 1: Yes 0: No
+idCardFlag Int Whether it is a brush ID card pass 1: Yes
+0: no
+pwdFlag Int Is it a check password to pass through 1:
+Yes 0: No
+resultFlag Int Identification result identification 1:
+success 2: failure 3: Insufficient
+permissions
+strangerFlag Int Is it a stranger? 1: Yes 0: No
+openDoorFlag Int Open the door? 1: Yes 0: No
+createTime Long transit time,
+7. Time period management interface
+7.1 Time period is created or updated
+Description: Create time periods on the face machine
+Method URL
+POST http: / / middleware server IP: 8190 / api / ac / timezone
+/ merge
+Header land within certain boundaries
+
+--- PAGE 80 ---
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+acTzNumber Time period
+number
+Int Y Time period number
+ Please enter an integer
+between 1 and 100. The
+time period where this
+number exists on the
+device will update the
+information of the
+corresponding time period
+acTzName Time period
+name
+String Y Time period name
+sunStart Sunday start
+time
+String N  Format is HH: mm by
+default: 00:00
+sunEnd Sunday end
+time
+String N  Format is HH: mm by
+default: 23:59
+monStart Monday start
+time
+String N Format is HH: mm by default:
+00:00
+monEnd Monday to
+the end of
+the time
+String N  Format is HH: mm by
+default: 23:59
+tueStart Tuesday start
+time
+String N  Format is HH: mm by
+default: 00:00
+tueEnd Tuesday at
+the end of
+the time
+String N  Format is HH: mm by
+default: 23:59
+wedStart Wednesday
+start time
+String N Format is HH: mm by default:
+00:00
+wedEnd Wednesday
+end time
+String N Format is HH: mm by default:
+23:59
+thursStart Thursday
+start time
+String N Format is HH: mm by default:
+00:00
+
+--- PAGE 81 ---
+thursEnd Thursday is
+the end of
+the time
+String N Format is HH: mm by default:
+23:59
+friStart Friday start
+time
+String N Format is HH: mm by default:
+00:00
+friEnd Friday at the
+end of the
+time
+String N Format is HH: mm by default:
+23:59
+satStart Saturday
+start time
+String N Format is HH: mm by default:
+00:00
+satEnd Saturday is
+the end time
+String N Format is HH: mm by default:
+23:59
+Postman instance
+Return an example
+
+--- PAGE 82 ---
+7.2 Time period deletion
+Note: Delete the corresponding time period on the identification device
+Method URL
+POST http: / / middleware server IP: 8190 / api /
+ac_timezone / delete
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+
+--- PAGE 83 ---
+acTzNumber Time period
+number
+String Y Time periods are numbered,
+and multiple numbers are
+separated by a comma
+Postman instance
+Return an example
+7.3 Time period list query
+Description: Query the access control group list information on the equipment
+Method URL
+POST http: / / middleware server IP: 8190 / api / ac_timezone /
+findList
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+
+--- PAGE 84 ---
+acTzNumber Time period
+number
+String N Time periods are numbered,
+and multiple time periods are
+divided by comma
+Without filling in this parameter,
+return all time period
+information on the device
+Postman instance
+Return an example
+Viii. Access control group management interface
+8.1 Creation or update
+
+--- PAGE 85 ---
+Description: Create an access control group on the face machine
+Method URL
+POST P: http: / / middleware server IP: 8190 / api / ac /
+group / merge
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+acGroupNumb
+er
+Access control
+group number
+Int Y Access control group number
+ Please enter an integer
+between 2 and 50. If this
+number of access control
+group exists on the device,
+the information of the
+corresponding access
+control group will be
+updated
+name Access control
+group name
+String Y Access control group name
+verifyStyle verification
+mode
+Int N verification mode
+ 0: Any
+ 1: Only the human face
+ 2: swipe the card only
+ 20: Card + human face
+ 21: Card + fingerprint
+ 3: The fingerprint is the
+only one
+ 30: Fingerprint + human
+face
+expiredType Exdate type Int N Exdate type
+ 0 Never expire
+ 1 Time
+ 2 Times
+ 3 for time + times
+
+--- PAGE 86 ---
+validTimeBegin Effective time
+begins
+Long N Personnel shelf life start time,
+Unix millisecond timestamp (13-
+bit)
+If the personnel identifies
+outside the validity period, the
+device will broadcast
+"insufficient name permission",
+and the device screen will
+display "name + insufficient
+permission"
+validTimeEnd The effective
+time is over
+Long N Personnel expiration date end
+time, Unix millisecond
+timestamp (13 bit)
+ If the personnel identifies
+outside the validity period,
+the device will broadcast
+"insufficient name
+permission", and the device
+screen will display "name +
+insufficient permission"
+validCount effective degree Int N  TODO
+acTzNumber1 Access period 1
+number
+Int N Access period 1 number
+ Please enter the integer
+between 0 and 100 for the
+corresponding time period
+acTzNumber2 Access period 2
+number
+Int N ditto
+acTzNumber3 Time period # 3 Int N ditto
+Postman instance
+Return an example
+
+--- PAGE 87 ---
+8.2 Delete of access control group
+Note: Delete the corresponding access control group on the personnel identification
+equipment
+Method URL
+POST http: / / middleware server IP: 8190 / api /
+ac_group / delete
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+acGroupNu
+mber
+Access
+control group
+number
+String Y Access control group number,
+multiple access control group
+number is divided with a
+comma
+Postman instance
+
+--- PAGE 88 ---
+Return an example
+8.3 Access control group list query
+Description: Query the access control group list information on the equipment
+Method URL
+POST http: / / middleware server IP: 8190 / api / ac_group /
+findList
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter name description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+
+--- PAGE 89 ---
+acGroupNumber Access
+control group
+number
+String N Access control group number,
+multiple access control group
+number is divided with a
+comma
+Without filling in this parameter,
+return all the access control
+group information on the device
+Postman instance
+Return an example
+Code code description
+
+--- PAGE 90 ---
+code a sign or object
+indicating number
+msg
+101101 The value of personType is an integer between-1-3
+101102 The value of findType is an integer greater than 0
+101103 The value of startTime is misformed
+101104 The value of endTime is misformed
+101105 The value of the endTime should be greater than the
+startTime
+101106 The value of recordId should be greater than 0
+9. Fingerprint management interface
+9.1 Fingerprint creation or update
+Note: Register the face recognition photo of the corresponding person through the
+job number
+Method URL
+POST http: / / middleware server IP: 8190 / api / finger
+/ merge
+Header land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+Content-Type Request body
+type
+String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+fingerMerge
+List
+Fingerprint
+parameters
+List<Object> Y Array of fingerprint parameters
+Object.perso
+nSn
+Person
+employee
+number
+String Y Personnel number, must first be
+registered personnel
+Object.finger
+Id
+Unique
+identification
+of the
+characteristic
+value
+String Y Unique identification of the
+characteristic value
+
+--- PAGE 91 ---
+Object.finger
+Num
+Several
+fingers, 2
+digits
+Int Y Several fingers, 2 examples: 12
+for the left thumb
+ The first digit identifies the
+left and right hand
+ 1: Left hand 2: Right
+hand
+ 2nd digit
+1: Thumb 2: index finger 3:
+middle finger 4: ring finger 5:
+little finger
+Object.featur
+e
+eigenvalue String Y
+fingerMergeList Parameter description:
+Postman instance
+Return an example
+
+--- PAGE 92 ---
+9.2 Fingerprint deletion
+Note: Delete the corresponding access control group on the personnel identification
+equipment
+Method URL
+POST The http: / / middleware server IP: 8190 /
+api/finger/delete
+Header land within certain boundaries
+parameter
+name
+descriptiontype Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+personSn Person
+employee
+number
+String Y Unique identification of
+personnel
+fingerId loops and
+whorls on a
+finger ID
+String Y Fingerprint unique identification
+Postman instance
+
+--- PAGE 93 ---
+Return an example
+9.3 Fingerprint search
+Description: Query the access control group list information on the equipment
+Method URL
+POST http: / / middleware server IP: 8190 / api / finger
+/ find
+Header land within certain boundaries
+parameter
+name
+descriptio
+n
+type Must
+pass
+Additional instructions
+Content-Type Request
+body type
+String Y application/x-www-form-urlencoded
+Body land within certain boundaries
+parameter
+name
+description type Must
+pass
+Additional instructions
+deviceKey Device serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y Server password set in the
+communication settings on the
+face device
+personSn Person
+employee
+number
+String Y Unique identification of
+personnel
+Postman instance
+
+--- PAGE 94 ---
+Return an example
+X. Palmprint / palm vein management interface
+10.1 Palmprint / palmar vein is created or updated
+Description: Register the palm print / palm vein data of the
+corresponding person through the work number
+Method URL
+POST The http: / / middleware server IP: 8190 / api/palm /merge
+Header land within certain boundaries
+parameter
+name description type Must
+pass Additional instructions
+Content-
+Type
+Request body
+type String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+
+--- PAGE 95 ---
+parameter
+name description type Must
+pass Additional instructions
+deviceKey
+Device
+serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y
+Server password set in the
+communication settings on
+the face device
+palmMerge
+List
+Palmprint
+parameters List<Object> Y Array of palm print
+parameters
+Object.pers
+onSn
+Person
+employee
+number
+String Y Personnel number, must first
+be registered personnel
+Object.fing
+erId
+Unique
+identificatio
+n of the
+characteristi
+c value
+String Y Unique identification of the
+characteristic value
+Object.fing
+erNum Which palm Int Y 1 Left hand and 2 right hand
+Object.feat
+ure eigenvalue String Y
+palmMergeList Parameter description:
+The // parameter is of the List <Object> type
+[
+{
+"personSn": "004", / / person number, must be registered first
+"palmId": "001", / /, the unique identification of the feature value
+"palmNum": 21, / / 1 left hand, 2 right hand
+"feature": "Rk1SACAyMAAAAAF6AAAA/AFEAMUAxQEAAABm..." // feature
+},
+{
+"personSn": "004",
+"palmId": "001",
+"palmNum": 22,
+"feature": "Rk1SACAyMAAAAAF6AAAA/AFEAMUAxQEAAABm..."
+}
+]
+Postman instance
+
+--- PAGE 96 ---
+Return an example
+{
+"code": "000",
+"data": [
+{
+"feature": "Rk1SACAyMAAAAAF6AAAA/AFEAMUAxQEAA...",
+"palmId": "001",
+"palmNum": 21,
+"personSn": "004"
+}
+],
+"Msg": "Request is successful"
+}
+10.2 Palmprint / palmar vein deletion
+Note: Delete the palm print / palm vein data of the corresponding
+person by the work number
+Method URL
+POST The http: / / middleware server IP: 8190 / api/palm/delete
+Header land within certain boundaries
+parameter
+name description type Must
+pass Additional instructions
+Content-
+Type
+Request body
+type String Y application/x-www-form-
+urlencoded
+Body land within certain boundaries
+parameter
+name description type Must
+pass Additional instructions
+deviceKey
+Device
+serial
+number
+String Y Device Serial number, 16-bit
+
+--- PAGE 97 ---
+secret password String Y
+Server password set in the
+communication settings on
+the face device
+personSn
+Person
+employee
+number
+String Y Unique identification of
+personnel
+palmId friction ridge
+ID String Y The sole identification of the
+palm grain
+Postman instance
+Return an example
+{
+"code": "000",
+"data": {
+"palmId": "001",
+"personSn": "003"
+},
+"Msg": "Request is successful"
+}
+10.3 Palmprint / palmar vein search
+Note: Find the palmar print / palm vein data of the corresponding
+personnel through the work number
+Method URL
+POST The http: / / middleware server IP: 8190 / api/palm/find
+Header land within certain boundaries
+parameter
+name description type Must
+pass Additional instructions
+Content-
+Type
+Request body
+type String Y application/x-www-form-
+urlencoded
+
+--- PAGE 98 ---
+Body land within certain boundaries
+parameter
+name description type Must
+pass Additional instructions
+deviceKey
+Device
+serial
+number
+String Y Device Serial number, 16-bit
+secret password String Y
+Server password set in the
+communication settings on
+the face device
+personSn
+Person
+employee
+number
+String Y Unique identification of
+personnel
+Postman instance
+Return an example
+{
+"code": "000",
+"data": [
+{
+"createTime": 1679731214951, / / created
+"feature":
+"Rk1SACAyMAAAAAF6AAAA/AFEAMUAxQEAAABmC0CGALX+XUARAHQWXUDd
+AF...",// eigenvalue
+"palmId": "a194ef00d89643eb9500e31b7f2aade6", / / palm / unique identification
+"palmNum": 1, / / 1, left hand, 2, right hand
+"personSn": "004" / / person employee number
+}
+],
+"Msg": "Request is successful"
+}
+addendum
+1. Code code description
+
+--- PAGE 99 ---
+code a sign or object
+indicating number
+msg
+-1 Equipment is busy, please try again later
+000 Request for success
+401 Illegal request, the authentication failure
+1000 Request parameter error
+1001 The value of length is an integer between 0-1000
+1. Support for language / time zone

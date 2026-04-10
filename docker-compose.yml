@@ -1,0 +1,83 @@
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      FACEAPP_DOMAIN: ${FACEAPP_DOMAIN}
+      FACEAPP_API_DOMAIN: ${FACEAPP_API_DOMAIN}
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - api
+
+  frontend:
+    build:
+      context: ./faceapp
+      args:
+        VITE_API_BASE_URL: ${FACEAPP_API_ORIGIN}
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./faceapp-api
+    restart: unless-stopped
+    environment:
+      APP_ENV: ${LARAVEL_APP_ENV}
+      APP_DEBUG: ${LARAVEL_APP_DEBUG}
+      APP_KEY: ${LARAVEL_APP_KEY}
+      APP_URL: ${FACEAPP_API_ORIGIN}
+      LOG_CHANNEL: stack
+      LOG_LEVEL: info
+      DB_CONNECTION: sqlite
+      DB_DATABASE: /var/www/html/storage/database/database.sqlite
+      SESSION_DRIVER: file
+      CACHE_STORE: file
+      QUEUE_CONNECTION: sync
+      FILESYSTEM_DISK: public
+      GATEWAY_BASE_URL: http://gateway:8190/api
+      GATEWAY_DEVICE_KEY: ${GATEWAY_DEVICE_KEY}
+      GATEWAY_SECRET: ${GATEWAY_SECRET}
+      GATEWAY_TIMEOUT_SECONDS: ${GATEWAY_TIMEOUT_SECONDS}
+      GATEWAY_DEFAULT_PERSON_TYPE: ${GATEWAY_DEFAULT_PERSON_TYPE}
+      GATEWAY_DEFAULT_VERIFY_STYLE: ${GATEWAY_DEFAULT_VERIFY_STYLE}
+      GATEWAY_DEFAULT_AC_GROUP_NUMBER: ${GATEWAY_DEFAULT_AC_GROUP_NUMBER}
+      GATEWAY_DEFAULT_PHOTO_QUALITY: ${GATEWAY_DEFAULT_PHOTO_QUALITY}
+      GATEWAY_CALLBACK_BASE_URL: ${GATEWAY_CALLBACK_BASE_URL:-}
+      GATEWAY_PERSON_VERIFY_RETRIES: ${GATEWAY_PERSON_VERIFY_RETRIES:-5}
+      GATEWAY_PERSON_VERIFY_DELAY_MS: ${GATEWAY_PERSON_VERIFY_DELAY_MS:-1000}
+      GATEWAY_VERIFY_RETRIES: ${GATEWAY_VERIFY_RETRIES:-5}
+      GATEWAY_VERIFY_DELAY_MS: ${GATEWAY_VERIFY_DELAY_MS:-1500}
+      GATEWAY_HEARTBEAT_INTERVAL_SECONDS: ${GATEWAY_HEARTBEAT_INTERVAL_SECONDS:-60}
+      GATEWAY_ONLINE_WINDOW_SECONDS: ${GATEWAY_ONLINE_WINDOW_SECONDS:-180}
+      GATEWAY_UPLOAD_DISK: public
+      GATEWAY_UPLOAD_DIR: face-uploads
+      FACE_PUBLIC_BASE_URL: ${FACEAPP_API_ORIGIN}/storage
+      GATEWAY_IMAGE_BASE_URL: ${GATEWAY_IMAGE_BASE_URL}
+    volumes:
+      - api_storage:/var/www/html/storage
+    depends_on:
+      - gateway
+
+  gateway:
+    build:
+      context: ./gateway-sdk-service_v2.0.6_20240117
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_DEVICE_PORT}:10010"
+      - "${GATEWAY_SDK_PORT}:10011"
+    expose:
+      - "8190"
+    volumes:
+      - gateway_logs:/app/logs
+
+volumes:
+  api_storage:
+  gateway_logs:
+  caddy_data:
+  caddy_config:
