@@ -3,13 +3,13 @@ services:
     image: caddy:2.10-alpine
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "${FACEAPP_PROXY_HTTP_BIND:-80}:80"
+      - "${FACEAPP_PROXY_HTTPS_BIND:-443}:443"
     environment:
       FACEAPP_DOMAIN: ${FACEAPP_DOMAIN}
       FACEAPP_API_DOMAIN: ${FACEAPP_API_DOMAIN}
     volumes:
-      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ${FACEAPP_CADDYFILE:-./infra/caddy/Caddyfile}:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
