@@ -59,5 +59,8 @@ fi
 
 echo "Building and starting Docker services..."
 docker compose -f docker-compose.yml -f docker-compose.vps.yml up -d --build
+echo "Reloading FaceApp Caddy with latest mounted config..."
+docker compose -f docker-compose.yml -f docker-compose.vps.yml exec -T caddy caddy validate --config /etc/caddy/Caddyfile
+docker compose -f docker-compose.yml -f docker-compose.vps.yml exec -T caddy caddy reload --config /etc/caddy/Caddyfile || docker compose -f docker-compose.yml -f docker-compose.vps.yml restart caddy
 
 echo "FaceApp deployment complete."
