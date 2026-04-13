@@ -195,11 +195,9 @@ export default function App() {
     <div className="app-root">
       <Dashboard
         user={user}
-        users={users}
         activeDevices={activeDevices}
         loading={loading}
         refreshing={refreshing}
-        onSelectUser={handleSelectUser}
         onOpenCamera={handleOpenCamera}
       />
 

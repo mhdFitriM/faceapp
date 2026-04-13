@@ -1,11 +1,5 @@
 import './Dashboard.css'
 
-const STATUS_CONFIG = {
-  active: { label: 'Active', color: 'green' },
-  pending: { label: 'Syncing', color: 'amber' },
-  inactive: { label: 'Inactive', color: 'red' },
-}
-
 const SYNC_STATUS_CONFIG = {
   verified: 'green',
   synced: 'blue',
@@ -35,14 +29,11 @@ function formatActivityTime(value) {
 
 export default function Dashboard({
   user,
-  users,
   activeDevices,
   loading,
   refreshing,
-  onSelectUser,
   onOpenCamera,
 }) {
-  const status = STATUS_CONFIG[user?.status] || STATUS_CONFIG.pending
   const initials = user?.name
     ? user.name.split(' ').map((name) => name[0]).join('').slice(0, 2)
     : 'NA'
@@ -52,53 +43,7 @@ export default function Dashboard({
       <div className="db-blob db-blob-1" aria-hidden="true" />
       <div className="db-blob db-blob-2" aria-hidden="true" />
 
-      <header className="db-header glass animate-fadeUp">
-        <div className="db-logo">
-          <div className="db-logo-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4z" />
-              <path d="M6.5 10.5C5 12 4 14 4 16c0 3.3 3.6 6 8 6s8-2.7 8-6c0-2-.9-3.8-2.3-5.1" />
-            </svg>
-          </div>
-          <span>FaceID</span>
-        </div>
-        <div className="db-header-right">
-          <div className={`status-badge status-${status.color}`}>
-            <span className="status-dot" />
-            {refreshing ? 'Refreshing' : status.label}
-          </div>
-        </div>
-      </header>
-
       <main className="db-main">
-        <section className="selector-card glass animate-fadeUp">
-          <div className="selector-copy">
-            <p className="selector-label">Managed User</p>
-            <h2>{user ? user.name : 'Choose a user from admin'}</h2>
-            <p>{user ? 'Face enrollment and recent events now come from the Laravel admin records.' : 'Create a user in the admin panel first, then come back here to capture the face.'}</p>
-          </div>
-
-          <label className="selector-field" htmlFor="managed-user-select">
-            <span>Select user</span>
-            <select
-              id="managed-user-select"
-              value={user?.id ?? ''}
-              onChange={(event) => onSelectUser(event.target.value)}
-              disabled={loading || users.length === 0}
-            >
-              {users.length === 0 ? (
-                <option value="">No users available</option>
-              ) : (
-                users.map((managedUser) => (
-                  <option key={managedUser.id} value={managedUser.id}>
-                    {managedUser.name} - {managedUser.employeeId}
-                  </option>
-                ))
-              )}
-            </select>
-          </label>
-        </section>
-
         {!user ? (
           <section className="empty-state glass animate-fadeUp">
             <h3>No managed user is ready yet</h3>

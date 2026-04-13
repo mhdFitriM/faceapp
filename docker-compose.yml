@@ -28,6 +28,7 @@ services:
       context: ./faceapp-api
     restart: unless-stopped
     environment:
+      APP_NAME: ${LARAVEL_APP_NAME:-FaceApp API}
       APP_ENV: ${LARAVEL_APP_ENV}
       APP_DEBUG: ${LARAVEL_APP_DEBUG}
       APP_KEY: ${LARAVEL_APP_KEY}
@@ -37,6 +38,8 @@ services:
       DB_CONNECTION: sqlite
       DB_DATABASE: /var/www/html/storage/database/database.sqlite
       SESSION_DRIVER: file
+      SESSION_COOKIE: ${LARAVEL_SESSION_COOKIE:-faceapp_api_session}
+      SESSION_DOMAIN: ${LARAVEL_SESSION_DOMAIN:-}
       CACHE_STORE: file
       QUEUE_CONNECTION: sync
       FILESYSTEM_DISK: public

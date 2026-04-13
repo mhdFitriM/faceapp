@@ -175,7 +175,7 @@
   width: 100%;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  background: rgba(17, 24, 39, 0.22);
+  background: #111827;
   color: var(--text-primary);
   padding: 12px 14px;
   font: inherit;
@@ -602,9 +602,15 @@
 
 .activity-list {
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow-y: scroll;
+  max-height: 315px;
   border: 1px solid var(--border);
   padding: 4px 0;
+  scrollbar-width: none;
+}
+
+.activity-list::-webkit-scrollbar {
+  display: none;
 }
 
 .activity-item {
