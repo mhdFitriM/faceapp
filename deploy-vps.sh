@@ -38,10 +38,23 @@ require_non_example_value() {
   fi
 }
 
+require_non_placeholder_value() {
+  local key="$1"
+  local value
+  value="$(read_env_value "$key")"
+
+  if [[ -z "$value" || "$value" == "YOUR_DEVICE_KEY" || "$value" == "YOUR_DEVICE_SECRET" ]]; then
+    echo "$key still uses a placeholder value in $ROOT_DIR/.env"
+    exit 1
+  fi
+}
+
 require_value "LARAVEL_APP_KEY"
 require_non_example_value "FACEAPP_DOMAIN"
 require_non_example_value "FACEAPP_API_DOMAIN"
 require_non_example_value "FACEAPP_API_ORIGIN"
+require_non_placeholder_value "GATEWAY_DEVICE_KEY"
+require_non_placeholder_value "GATEWAY_SECRET"
 
 if [[ "$(read_env_value "LARAVEL_APP_KEY")" == *"replace-with-your-real-app-key"* ]]; then
   echo "LARAVEL_APP_KEY is still using the placeholder value in $ROOT_DIR/.env"
