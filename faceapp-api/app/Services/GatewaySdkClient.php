@@ -14,6 +14,10 @@ class GatewaySdkClient
 {
     protected ?Device $deviceContext = null;
 
+    protected bool $managedDeviceSecretDecryptFailed = false;
+
+    protected bool $usedGatewaySecretFallback = false;
+
     public function __construct(
         protected readonly SystemSettingsService $settings,
     ) {}
@@ -22,6 +26,8 @@ class GatewaySdkClient
     {
         $clone = clone $this;
         $clone->deviceContext = $device;
+        $clone->managedDeviceSecretDecryptFailed = false;
+        $clone->usedGatewaySecretFallback = false;
 
         return $clone;
     }
@@ -220,6 +226,13 @@ class GatewaySdkClient
                 ->post($this->endpoint($path), $this->withDeviceCredentials($payload))
                 ->throw();
         } catch (RequestException $exception) {
+            if ($exception->response?->status() === 401 && $this->managedDeviceSecretDecryptFailed && $this->usedGatewaySecretFallback) {
+                throw new RuntimeException(
+                    'Gateway authentication failed. The managed device secret stored in FaceApp could not be decrypted, so the request fell back to GATEWAY_SECRET, and that fallback secret was rejected. Re-enter the exact cloud secret for this device in Admin > Devices and keep APP_KEY unchanged.',
+                    previous: $exception,
+                );
+            }
+
             $message = $exception->response?->json('msg')
                 ?? $exception->response?->body()
                 ?? $exception->getMessage();
@@ -282,6 +295,9 @@ class GatewaySdkClient
 
     protected function resolveSecret(): mixed
     {
+        $this->managedDeviceSecretDecryptFailed = false;
+        $this->usedGatewaySecretFallback = false;
+
         if (! $this->deviceContext) {
             return config('gateway.secret');
         }
@@ -289,6 +305,7 @@ class GatewaySdkClient
         try {
             $secret = $this->deviceContext->secret;
         } catch (DecryptException $exception) {
+            $this->managedDeviceSecretDecryptFailed = true;
             $rawSecret = $this->deviceContext->getRawOriginal('secret');
 
             if ($this->isLegacyPlaintextSecret($rawSecret)) {
@@ -303,6 +320,8 @@ class GatewaySdkClient
             $fallbackSecret = config('gateway.secret');
 
             if (is_string($fallbackSecret) && $fallbackSecret !== '') {
+                $this->usedGatewaySecretFallback = true;
+
                 Log::warning('Falling back to GATEWAY_SECRET after failing to decrypt the managed device secret.', [
                     'device_id' => $this->deviceContext->id,
                     'device_key' => $this->deviceContext->device_key,

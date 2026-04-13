@@ -179,4 +179,43 @@ class ManagedDeviceAdminTest extends TestCase
             ->assertRedirect(route('admin.devices.index'))
             ->assertSessionHas('error', 'Callback configuration failed: Stored device secret could not be decrypted with the current APP_KEY. Re-save the device secret in admin and try again.');
     }
+
+    public function test_it_shows_a_helpful_error_when_the_fallback_gateway_secret_is_rejected(): void
+    {
+        config()->set('gateway.base_url', 'http://gateway.local/api');
+        config()->set('gateway.secret', 'wrong-env-secret');
+
+        $legacyEncrypter = new Encrypter(random_bytes(32), config('app.cipher'));
+
+        DB::table('devices')->insert([
+            'device_key' => 'DEVICE1234567890',
+            'name' => 'Main Gate',
+            'secret' => $legacyEncrypter->encryptString('legacy-secret-123'),
+            'is_managed' => true,
+            'is_active' => true,
+            'display_order' => 0,
+            'person_type_default' => 1,
+            'verify_style_default' => 1,
+            'ac_group_number_default' => 0,
+            'photo_quality_default' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Http::fake([
+            'http://gateway.local/api/device/setSevConfig' => Http::response([
+                'code' => '401',
+                'msg' => 'Illegal request,authentication failed',
+            ], 401),
+        ]);
+
+        $device = Device::query()->where('device_key', 'DEVICE1234567890')->firstOrFail();
+
+        $response = $this->from(route('admin.devices.index'))
+            ->post(route('admin.devices.configure-callbacks', $device));
+
+        $response
+            ->assertRedirect(route('admin.devices.index'))
+            ->assertSessionHas('error', 'Callback configuration failed: Gateway authentication failed. The managed device secret stored in FaceApp could not be decrypted, so the request fell back to GATEWAY_SECRET, and that fallback secret was rejected. Re-enter the exact cloud secret for this device in Admin > Devices and keep APP_KEY unchanged.');
+    }
 }
