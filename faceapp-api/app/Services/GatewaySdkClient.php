@@ -18,6 +18,10 @@ class GatewaySdkClient
 
     protected bool $usedGatewaySecretFallback = false;
 
+    protected bool $resolvedSecretWasFromManagedDevice = false;
+
+    protected ?string $resolvedSecret = null;
+
     public function __construct(
         protected readonly SystemSettingsService $settings,
     ) {}
@@ -226,18 +230,20 @@ class GatewaySdkClient
                 ->post($this->endpoint($path), $this->withDeviceCredentials($payload))
                 ->throw();
         } catch (RequestException $exception) {
-            if ($exception->response?->status() === 401 && $this->managedDeviceSecretDecryptFailed && $this->usedGatewaySecretFallback) {
+            if ($retryResponse = $this->retryWithConfiguredGatewayCredentials($path, $payload, $exception)) {
+                $response = $retryResponse;
+            } elseif ($exception->response?->status() === 401 && $this->managedDeviceSecretDecryptFailed && $this->usedGatewaySecretFallback) {
                 throw new RuntimeException(
                     'Gateway authentication failed. The managed device secret stored in FaceApp could not be decrypted, so the request fell back to GATEWAY_SECRET, and that fallback secret was rejected. Re-enter the exact cloud secret for this device in Admin > Devices and keep APP_KEY unchanged.',
                     previous: $exception,
                 );
+            } else {
+                $message = $exception->response?->json('msg')
+                    ?? $exception->response?->body()
+                    ?? $exception->getMessage();
+
+                throw new RuntimeException('Gateway request failed: '.$message, previous: $exception);
             }
-
-            $message = $exception->response?->json('msg')
-                ?? $exception->response?->body()
-                ?? $exception->getMessage();
-
-            throw new RuntimeException('Gateway request failed: '.$message, previous: $exception);
         }
 
         $decoded = $response->json();
@@ -297,18 +303,27 @@ class GatewaySdkClient
     {
         $this->managedDeviceSecretDecryptFailed = false;
         $this->usedGatewaySecretFallback = false;
+        $this->resolvedSecretWasFromManagedDevice = false;
+        $this->resolvedSecret = null;
 
         if (! $this->deviceContext) {
-            return config('gateway.secret');
+            $secret = config('gateway.secret');
+            $this->resolvedSecret = is_string($secret) ? $secret : null;
+
+            return $secret;
         }
 
         try {
             $secret = $this->deviceContext->secret;
+            $this->resolvedSecretWasFromManagedDevice = is_string($secret) && $secret !== '';
         } catch (DecryptException $exception) {
             $this->managedDeviceSecretDecryptFailed = true;
             $rawSecret = $this->deviceContext->getRawOriginal('secret');
 
             if ($this->isLegacyPlaintextSecret($rawSecret)) {
+                $this->resolvedSecretWasFromManagedDevice = true;
+                $this->resolvedSecret = $rawSecret;
+
                 Log::warning('Using a legacy plaintext device secret for gateway request.', [
                     'device_id' => $this->deviceContext->id,
                     'device_key' => $this->deviceContext->device_key,
@@ -321,6 +336,7 @@ class GatewaySdkClient
 
             if (is_string($fallbackSecret) && $fallbackSecret !== '') {
                 $this->usedGatewaySecretFallback = true;
+                $this->resolvedSecret = $fallbackSecret;
 
                 Log::warning('Falling back to GATEWAY_SECRET after failing to decrypt the managed device secret.', [
                     'device_id' => $this->deviceContext->id,
@@ -336,7 +352,42 @@ class GatewaySdkClient
             );
         }
 
-        return $secret ?: config('gateway.secret');
+        $resolved = $secret ?: config('gateway.secret');
+        $this->resolvedSecret = is_string($resolved) ? $resolved : null;
+
+        return $resolved;
+    }
+
+    protected function retryWithConfiguredGatewayCredentials(string $path, array $payload, RequestException $exception): ?\Illuminate\Http\Client\Response
+    {
+        if ($exception->response?->status() !== 401 || ! $this->deviceContext || ! $this->resolvedSecretWasFromManagedDevice) {
+            return null;
+        }
+
+        $configuredDeviceKey = config('gateway.device_key');
+        $configuredSecret = config('gateway.secret');
+
+        if (! is_string($configuredDeviceKey) || $configuredDeviceKey === '' || ! is_string($configuredSecret) || $configuredSecret === '') {
+            return null;
+        }
+
+        if ($configuredDeviceKey !== $this->deviceContext->device_key || $configuredSecret === $this->resolvedSecret) {
+            return null;
+        }
+
+        Log::warning('Retrying gateway request with configured gateway credentials after managed device authentication failed.', [
+            'device_id' => $this->deviceContext->id,
+            'device_key' => $this->deviceContext->device_key,
+            'path' => $path,
+        ]);
+
+        return $this->http()
+            ->post($this->endpoint($path), array_filter([
+                'deviceKey' => $configuredDeviceKey,
+                'secret' => $configuredSecret,
+                ...$payload,
+            ], fn (mixed $value): bool => $value !== null && $value !== ''))
+            ->throw();
     }
 
     protected function isLegacyPlaintextSecret(mixed $rawSecret): bool

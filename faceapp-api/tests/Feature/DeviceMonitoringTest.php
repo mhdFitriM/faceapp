@@ -173,6 +173,71 @@ class DeviceMonitoringTest extends TestCase
         });
     }
 
+    public function test_it_retries_with_configured_gateway_credentials_when_managed_device_auth_fails(): void
+    {
+        config()->set('gateway.device_key', 'DEVICE1234567890');
+        config()->set('gateway.secret', 'env-secret-123');
+        config()->set('gateway.base_url', 'http://gateway.local/api');
+        config()->set('gateway.monitoring.callback_base_url', 'http://api.example.com');
+        config()->set('gateway.monitoring.heartbeat_interval_seconds', 75);
+
+        Device::query()->create([
+            'device_key' => 'DEVICE1234567890',
+            'name' => 'Main Gate',
+            'secret' => 'managed-secret-456',
+            'is_managed' => true,
+            'is_active' => true,
+            'display_order' => 0,
+            'person_type_default' => 1,
+            'verify_style_default' => 1,
+            'ac_group_number_default' => 0,
+            'photo_quality_default' => 1,
+        ]);
+
+        Http::fake(function (ClientRequest $request) {
+            if ($request->url() !== 'http://gateway.local/api/device/setSevConfig') {
+                return Http::response([], 404);
+            }
+
+            if ($request['secret'] === 'managed-secret-456') {
+                return Http::response([
+                    'code' => '401',
+                    'msg' => 'Illegal request,authentication failed',
+                ], 401);
+            }
+
+            if ($request['secret'] === 'env-secret-123') {
+                return Http::response([
+                    'code' => '200',
+                    'msg' => 'ok',
+                    'data' => true,
+                ]);
+            }
+
+            return Http::response([], 500);
+        });
+
+        $response = $this->post('/devices/configure-callbacks');
+
+        $response
+            ->assertRedirect('/devices?device_id=1')
+            ->assertSessionHas('status');
+
+        Http::assertSentCount(2);
+
+        Http::assertSent(function (ClientRequest $request): bool {
+            return $request->url() === 'http://gateway.local/api/device/setSevConfig'
+                && $request['deviceKey'] === 'DEVICE1234567890'
+                && $request['secret'] === 'managed-secret-456';
+        });
+
+        Http::assertSent(function (ClientRequest $request): bool {
+            return $request->url() === 'http://gateway.local/api/device/setSevConfig'
+                && $request['deviceKey'] === 'DEVICE1234567890'
+                && $request['secret'] === 'env-secret-123';
+        });
+    }
+
     public function test_person_registration_callback_creates_or_updates_local_user_sync(): void
     {
         Device::query()->create([
