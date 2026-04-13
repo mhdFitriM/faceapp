@@ -47,6 +47,8 @@ class DeviceMonitorController extends Controller
             'managedDevices' => $managedDevices,
             'selectedDevice' => $selectedDevice,
             'configuredDeviceKey' => $selectedDevice?->device_key ?: config('gateway.device_key'),
+            'gatewayBaseUrl' => $settings->gatewayBaseUrl(),
+            'gatewayCallbackBaseUrl' => $settings->gatewayCallbackBaseUrl(),
             'gatewayStatus' => $gatewayStatus,
             'gatewayError' => $gatewayError,
             'devices' => Device::query()

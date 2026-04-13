@@ -89,6 +89,14 @@
                         <td>{{ $heartbeatIntervalSeconds }}s</td>
                     </tr>
                     <tr>
+                        <td>Gateway API base</td>
+                        <td><span class="code-tag">{{ $gatewayBaseUrl ?: 'Not set' }}</span></td>
+                    </tr>
+                    <tr>
+                        <td>Callback base</td>
+                        <td><span class="code-tag">{{ $gatewayCallbackBaseUrl ?: 'Not set' }}</span></td>
+                    </tr>
+                    <tr>
                         <td>Online window</td>
                         <td>{{ $onlineWindowSeconds }}s</td>
                     </tr>
