@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Models\Device;
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 
 class GatewaySdkClient
@@ -261,7 +263,7 @@ class GatewaySdkClient
     protected function withDeviceCredentials(array $payload): array
     {
         $deviceKey = $this->deviceContext?->device_key ?: config('gateway.device_key');
-        $secret = $this->deviceContext?->secret ?: config('gateway.secret');
+        $secret = $this->resolveSecret();
 
         if (! is_string($deviceKey) || $deviceKey === '') {
             throw new RuntimeException('GATEWAY_DEVICE_KEY is not configured.');
@@ -276,6 +278,69 @@ class GatewaySdkClient
             'secret' => $secret,
             ...$payload,
         ], fn (mixed $value): bool => $value !== null && $value !== '');
+    }
+
+    protected function resolveSecret(): mixed
+    {
+        if (! $this->deviceContext) {
+            return config('gateway.secret');
+        }
+
+        try {
+            $secret = $this->deviceContext->secret;
+        } catch (DecryptException $exception) {
+            $rawSecret = $this->deviceContext->getRawOriginal('secret');
+
+            if ($this->isLegacyPlaintextSecret($rawSecret)) {
+                Log::warning('Using a legacy plaintext device secret for gateway request.', [
+                    'device_id' => $this->deviceContext->id,
+                    'device_key' => $this->deviceContext->device_key,
+                ]);
+
+                return $rawSecret;
+            }
+
+            $fallbackSecret = config('gateway.secret');
+
+            if (is_string($fallbackSecret) && $fallbackSecret !== '') {
+                Log::warning('Falling back to GATEWAY_SECRET after failing to decrypt the managed device secret.', [
+                    'device_id' => $this->deviceContext->id,
+                    'device_key' => $this->deviceContext->device_key,
+                ]);
+
+                return $fallbackSecret;
+            }
+
+            throw new RuntimeException(
+                'Stored device secret could not be decrypted with the current APP_KEY. Re-save the device secret in admin and try again.',
+                previous: $exception,
+            );
+        }
+
+        return $secret ?: config('gateway.secret');
+    }
+
+    protected function isLegacyPlaintextSecret(mixed $rawSecret): bool
+    {
+        if (! is_string($rawSecret) || $rawSecret === '') {
+            return false;
+        }
+
+        $decoded = base64_decode($rawSecret, true);
+
+        if ($decoded === false) {
+            return true;
+        }
+
+        $payload = json_decode($decoded, true);
+
+        if (! is_array($payload)) {
+            return true;
+        }
+
+        return ! array_key_exists('iv', $payload)
+            || ! array_key_exists('value', $payload)
+            || ! array_key_exists('mac', $payload);
     }
 
     protected function responseIndicatesSuccess(array $response): bool

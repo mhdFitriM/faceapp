@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\Device;
 use App\Models\ManagedUser;
 use App\Models\ManagedUserDeviceSync;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -144,5 +146,37 @@ class ManagedDeviceAdminTest extends TestCase
                 && $request['deviceKey'] === 'DEVICE1234567890'
                 && $request['secret'] === 'secret123';
         });
+    }
+
+    public function test_it_shows_a_helpful_error_when_a_device_secret_cannot_be_decrypted_and_no_fallback_exists(): void
+    {
+        config()->set('gateway.base_url', 'http://gateway.local/api');
+        config()->set('gateway.secret', null);
+
+        $legacyEncrypter = new Encrypter(random_bytes(32), config('app.cipher'));
+
+        DB::table('devices')->insert([
+            'device_key' => 'DEVICE1234567890',
+            'name' => 'Main Gate',
+            'secret' => $legacyEncrypter->encryptString('legacy-secret-123'),
+            'is_managed' => true,
+            'is_active' => true,
+            'display_order' => 0,
+            'person_type_default' => 1,
+            'verify_style_default' => 1,
+            'ac_group_number_default' => 0,
+            'photo_quality_default' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $device = Device::query()->where('device_key', 'DEVICE1234567890')->firstOrFail();
+
+        $response = $this->from(route('admin.devices.index'))
+            ->post(route('admin.devices.configure-callbacks', $device));
+
+        $response
+            ->assertRedirect(route('admin.devices.index'))
+            ->assertSessionHas('error', 'Callback configuration failed: Stored device secret could not be decrypted with the current APP_KEY. Re-save the device secret in admin and try again.');
     }
 }

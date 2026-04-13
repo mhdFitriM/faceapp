@@ -6,8 +6,10 @@ use App\Models\Device;
 use App\Models\Enrollment;
 use App\Models\ManagedUser;
 use App\Models\ManagedUserDeviceSync;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -122,6 +124,52 @@ class DeviceMonitoringTest extends TestCase
                 && $request['sevUploadDevHeartbeatUrl'] === $expectedHeartbeatUrl
                 && $request['sevUploadRegPersonUrl'] === $expectedPersonRegistrationUrl
                 && (string) $request['sevUploadDevHeartbeatInterval'] === '75';
+        });
+    }
+
+    public function test_it_falls_back_to_gateway_secret_when_a_managed_device_secret_cannot_be_decrypted(): void
+    {
+        config()->set('gateway.device_key', 'DEVICE1234567890');
+        config()->set('gateway.secret', 'env-secret-123');
+        config()->set('gateway.base_url', 'http://gateway.local/api');
+        config()->set('gateway.monitoring.callback_base_url', 'http://api.example.com');
+        config()->set('gateway.monitoring.heartbeat_interval_seconds', 75);
+
+        $legacyEncrypter = new Encrypter(random_bytes(32), config('app.cipher'));
+
+        DB::table('devices')->insert([
+            'device_key' => 'DEVICE1234567890',
+            'name' => 'Main Gate',
+            'secret' => $legacyEncrypter->encryptString('legacy-secret-123'),
+            'is_managed' => true,
+            'is_active' => true,
+            'display_order' => 0,
+            'person_type_default' => 1,
+            'verify_style_default' => 1,
+            'ac_group_number_default' => 0,
+            'photo_quality_default' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        Http::fake([
+            'http://gateway.local/api/device/setSevConfig' => Http::response([
+                'code' => '200',
+                'msg' => 'ok',
+                'data' => true,
+            ]),
+        ]);
+
+        $response = $this->post('/devices/configure-callbacks');
+
+        $response
+            ->assertRedirect('/devices?device_id=1')
+            ->assertSessionHas('status');
+
+        Http::assertSent(function (ClientRequest $request): bool {
+            return $request->url() === 'http://gateway.local/api/device/setSevConfig'
+                && $request['deviceKey'] === 'DEVICE1234567890'
+                && $request['secret'] === 'env-secret-123';
         });
     }
 
