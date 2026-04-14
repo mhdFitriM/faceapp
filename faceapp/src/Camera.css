@@ -106,7 +106,7 @@
   opacity: 1;
 }
 
-/* Oval guide */
+/* Oval guide — mobile-first, grows on larger screens */
 .face-guide::before {
   content: '';
   position: absolute;
@@ -143,6 +143,24 @@
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
   animation: scan-line 1.8s linear infinite;
   box-shadow: 0 0 12px var(--accent);
+}
+
+/* ─── Larger screens: scale oval with viewport height ─── */
+@media (min-width: 600px) {
+  .face-guide::before {
+    width: min(44vh, 480px);
+    height: min(58vh, 620px);
+  }
+
+  .guide-corner.tl { top: calc(50% - min(29vh, 310px)); left: calc(50% - min(22vh, 240px)); }
+  .guide-corner.tr { top: calc(50% - min(29vh, 310px)); right: calc(50% - min(22vh, 240px)); }
+  .guide-corner.bl { bottom: calc(50% - min(29vh, 310px)); left: calc(50% - min(22vh, 240px)); }
+  .guide-corner.br { bottom: calc(50% - min(29vh, 310px)); right: calc(50% - min(22vh, 240px)); }
+
+  .scan-line {
+    left: calc(50% - min(22vh, 240px));
+    width: min(44vh, 480px);
+  }
 }
 
 /* ─── Countdown ─── */
