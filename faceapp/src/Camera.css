@@ -106,12 +106,12 @@
   opacity: 1;
 }
 
-/* Oval guide — mobile-first, grows on larger screens */
+/* Oval guide — vh-based so it fills the viewport on any screen size */
 .face-guide::before {
   content: '';
   position: absolute;
-  width: min(64vw, 280px);
-  height: min(80vw, 340px);
+  width: min(72vw, 58vh);
+  height: min(90vw, 75vh);
   border: 2px solid rgba(99, 102, 241, 0.6);
   border-radius: 50%;
   box-shadow:
@@ -129,37 +129,37 @@
   opacity: 0.9;
 }
 
-.guide-corner.tl { top: calc(50% - min(40vw, 170px)); left: calc(50% - min(32vw, 140px)); border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
-.guide-corner.tr { top: calc(50% - min(40vw, 170px)); right: calc(50% - min(32vw, 140px)); border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
-.guide-corner.bl { bottom: calc(50% - min(40vw, 170px)); left: calc(50% - min(32vw, 140px)); border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
-.guide-corner.br { bottom: calc(50% - min(40vw, 170px)); right: calc(50% - min(32vw, 140px)); border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
+.guide-corner.tl { top: calc(50% - min(45vw, 37.5vh)); left: calc(50% - min(36vw, 29vh)); border-width: 3px 0 0 3px; border-radius: 4px 0 0 0; }
+.guide-corner.tr { top: calc(50% - min(45vw, 37.5vh)); right: calc(50% - min(36vw, 29vh)); border-width: 3px 3px 0 0; border-radius: 0 4px 0 0; }
+.guide-corner.bl { bottom: calc(50% - min(45vw, 37.5vh)); left: calc(50% - min(36vw, 29vh)); border-width: 0 0 3px 3px; border-radius: 0 0 0 4px; }
+.guide-corner.br { bottom: calc(50% - min(45vw, 37.5vh)); right: calc(50% - min(36vw, 29vh)); border-width: 0 3px 3px 0; border-radius: 0 0 4px 0; }
 
 /* ─── Scan Line ─── */
 .scan-line {
   position: absolute;
-  left: calc(50% - min(32vw, 140px));
-  width: min(64vw, 280px);
+  left: calc(50% - min(36vw, 29vh));
+  width: min(72vw, 58vh);
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
   animation: scan-line 1.8s linear infinite;
   box-shadow: 0 0 12px var(--accent);
 }
 
-/* ─── Larger screens: scale oval with viewport height ─── */
+/* ─── Larger screens: push even bigger ─── */
 @media (min-width: 600px) {
   .face-guide::before {
-    width: min(56vh, 620px);
-    height: min(72vh, 800px);
+    width: min(62vh, 700px);
+    height: min(80vh, 900px);
   }
 
-  .guide-corner.tl { top: calc(50% - min(36vh, 400px)); left: calc(50% - min(28vh, 310px)); }
-  .guide-corner.tr { top: calc(50% - min(36vh, 400px)); right: calc(50% - min(28vh, 310px)); }
-  .guide-corner.bl { bottom: calc(50% - min(36vh, 400px)); left: calc(50% - min(28vh, 310px)); }
-  .guide-corner.br { bottom: calc(50% - min(36vh, 400px)); right: calc(50% - min(28vh, 310px)); }
+  .guide-corner.tl { top: calc(50% - min(40vh, 450px)); left: calc(50% - min(31vh, 350px)); }
+  .guide-corner.tr { top: calc(50% - min(40vh, 450px)); right: calc(50% - min(31vh, 350px)); }
+  .guide-corner.bl { bottom: calc(50% - min(40vh, 450px)); left: calc(50% - min(31vh, 350px)); }
+  .guide-corner.br { bottom: calc(50% - min(40vh, 450px)); right: calc(50% - min(31vh, 350px)); }
 
   .scan-line {
-    left: calc(50% - min(28vh, 310px));
-    width: min(56vh, 620px);
+    left: calc(50% - min(31vh, 350px));
+    width: min(62vh, 700px);
   }
 }
 
