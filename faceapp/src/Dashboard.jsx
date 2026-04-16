@@ -27,16 +27,73 @@ function formatActivityTime(value) {
   })
 }
 
+function getInitials(name, fallback = 'NA') {
+  if (!name) {
+    return fallback
+  }
+
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
+function renderDeviceSyncs(activeDevices, user) {
+  return (
+    <div className="device-sync-card">
+      <div className="device-sync-header">
+        <h3>Active Device Sync</h3>
+        <span>{activeDevices.length} device{activeDevices.length === 1 ? '' : 's'}</span>
+      </div>
+      {activeDevices.length === 0 ? (
+        <p className="device-sync-empty">No active devices are configured in the admin panel yet.</p>
+      ) : (
+        <div className="device-sync-list">
+          {activeDevices.map((device) => {
+            const sync = user?.deviceSyncs?.find((item) => item.deviceId === device.id)
+            const syncState = sync?.faceStatus || sync?.syncStatus || 'pending'
+            const syncColor = SYNC_STATUS_CONFIG[syncState] || 'amber'
+
+            return (
+              <div className="device-sync-item" key={device.id}>
+                <div>
+                  <p className="device-sync-name">{device.name}</p>
+                  <p className="device-sync-meta">{device.deviceKey}</p>
+                </div>
+                <div className="device-sync-badges">
+                  <span className={`mini-pill mini-pill-${device.isOnline ? 'green' : 'amber'}`}>
+                    {device.isOnline ? 'Online' : 'Waiting'}
+                  </span>
+                  <span className={`mini-pill mini-pill-${syncColor}`}>
+                    {syncState}
+                  </span>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Dashboard({
+  users,
   user,
+  selectedUserId,
+  draftUser,
   activeDevices,
   loading,
   refreshing,
+  onSelectUser,
+  onDraftUserChange,
   onOpenCamera,
 }) {
-  const initials = user?.name
-    ? user.name.split(' ').map((name) => name[0]).join('').slice(0, 2)
-    : 'NA'
+  const isNewUser = !selectedUserId
+  const managedInitials = getInitials(user?.name)
+  const draftInitials = getInitials(draftUser.name, 'NU')
 
   return (
     <div className="dashboard">
@@ -44,10 +101,116 @@ export default function Dashboard({
       <div className="db-blob db-blob-2" aria-hidden="true" />
 
       <main className="db-main">
-        {!user ? (
+        <section className="selector-card glass animate-fadeUp">
+          <div className="selector-copy">
+            <span className="selector-label">Enrollment Target</span>
+            <h2>Start clean on every refresh</h2>
+            <p>The app now defaults to a blank new-user flow. Pick a managed user only when you want to re-enroll someone already in the system.</p>
+          </div>
+
+          <label className="selector-field">
+            <span>User mode</span>
+            <select
+              value={selectedUserId}
+              onChange={(event) => onSelectUser(event.target.value)}
+              disabled={loading || refreshing}
+            >
+              <option value="">New user</option>
+              {users.map((managedUser) => (
+                <option key={managedUser.id} value={managedUser.id}>
+                  {managedUser.name} ({managedUser.employeeId})
+                </option>
+              ))}
+            </select>
+          </label>
+        </section>
+
+        {isNewUser ? (
+          <>
+            <section className="profile-hero animate-fadeUp" style={{ animationDelay: '0.05s' }}>
+              <div className="profile-avatar-wrap">
+                <div className="profile-avatar-initials">
+                  <span>{draftInitials}</span>
+                </div>
+                <div className="avatar-ring" />
+              </div>
+
+              <div className="profile-info">
+                <h1 className="profile-name">{draftUser.name.trim() || 'New User'}</h1>
+                <p className="profile-role">Blank enrollment</p>
+                <p className="profile-dept">Refresh keeps this view empty so you can capture your own face photo.</p>
+              </div>
+            </section>
+
+            <section className="face-card glass animate-fadeUp" style={{ animationDelay: '0.1s' }}>
+              <div className="face-card-header">
+                <div className="face-card-title">
+                  <div className="face-icon-wrap">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M20 21a8 8 0 10-16 0" />
+                    </svg>
+                  </div>
+                  <span>New User Details</span>
+                </div>
+              </div>
+
+              <div className="face-id-empty face-id-empty-left">
+                <div className="empty-face-icon">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" />
+                    <circle cx="12" cy="13" r="3" />
+                  </svg>
+                </div>
+                <p className="empty-face-title">Empty photo by default</p>
+                <p className="empty-face-sub">Enter your details, then capture a fresh face image. Nothing is preloaded when the app refreshes.</p>
+              </div>
+
+              <div className="new-user-form">
+                <label className="new-user-field">
+                  <span>Name</span>
+                  <input
+                    type="text"
+                    value={draftUser.name}
+                    onChange={(event) => onDraftUserChange('name', event.target.value)}
+                    placeholder="Your full name"
+                    autoComplete="name"
+                  />
+                </label>
+
+                <label className="new-user-field">
+                  <span>Employee ID</span>
+                  <input
+                    type="text"
+                    value={draftUser.employeeId}
+                    onChange={(event) => onDraftUserChange('employeeId', event.target.value)}
+                    placeholder="EMP4829"
+                    autoComplete="off"
+                    spellCheck="false"
+                  />
+                </label>
+              </div>
+
+              {renderDeviceSyncs(activeDevices)}
+
+              <button
+                id="enroll-face-btn"
+                className="enroll-btn"
+                onClick={onOpenCamera}
+                disabled={loading || refreshing || activeDevices.length === 0}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" />
+                  <circle cx="12" cy="13" r="4" />
+                </svg>
+                Capture My Face
+              </button>
+            </section>
+          </>
+        ) : !user ? (
           <section className="empty-state glass animate-fadeUp">
-            <h3>No managed user is ready yet</h3>
-            <p>Add a user from the Laravel admin panel, then this FaceApp screen will let you enroll that user across every active device.</p>
+            <h3>Loading managed user</h3>
+            <p>FaceApp is fetching the managed user details you selected.</p>
           </section>
         ) : (
           <>
@@ -57,7 +220,7 @@ export default function Dashboard({
                   <img src={user.facePhoto} alt="Face" className="profile-face-img" />
                 ) : (
                   <div className="profile-avatar-initials">
-                    <span>{initials}</span>
+                    <span>{managedInitials}</span>
                   </div>
                 )}
                 <div className={`avatar-ring ${user.facePhoto ? 'ring-active' : ''}`} />
@@ -141,40 +304,7 @@ export default function Dashboard({
                 )}
               </div>
 
-              <div className="device-sync-card">
-                <div className="device-sync-header">
-                  <h3>Active Device Sync</h3>
-                  <span>{activeDevices.length} device{activeDevices.length === 1 ? '' : 's'}</span>
-                </div>
-                {activeDevices.length === 0 ? (
-                  <p className="device-sync-empty">No active devices are configured in the admin panel yet.</p>
-                ) : (
-                  <div className="device-sync-list">
-                    {activeDevices.map((device) => {
-                      const sync = user.deviceSyncs.find((item) => item.deviceId === device.id)
-                      const syncState = sync?.faceStatus || sync?.syncStatus || 'pending'
-                      const syncColor = SYNC_STATUS_CONFIG[syncState] || 'amber'
-
-                      return (
-                        <div className="device-sync-item" key={device.id}>
-                          <div>
-                            <p className="device-sync-name">{device.name}</p>
-                            <p className="device-sync-meta">{device.deviceKey}</p>
-                          </div>
-                          <div className="device-sync-badges">
-                            <span className={`mini-pill mini-pill-${device.isOnline ? 'green' : 'amber'}`}>
-                              {device.isOnline ? 'Online' : 'Waiting'}
-                            </span>
-                            <span className={`mini-pill mini-pill-${syncColor}`}>
-                              {syncState}
-                            </span>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
+              {renderDeviceSyncs(activeDevices, user)}
 
               <button
                 id="enroll-face-btn"
