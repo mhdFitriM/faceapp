@@ -458,41 +458,10 @@
   max-width: none;
 }
 
-.new-user-form {
+.new-user-grid {
   display: grid;
-  gap: 12px;
-}
-
-.new-user-field {
-  display: grid;
-  gap: 8px;
-}
-
-.new-user-field span {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.new-user-field input {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: rgba(15, 23, 42, 0.55);
-  color: var(--text-primary);
-  padding: 13px 14px;
-  font: inherit;
-  transition: border-color var(--transition), box-shadow var(--transition);
-}
-
-.new-user-field input::placeholder {
-  color: var(--text-muted);
-}
-
-.new-user-field input:focus {
-  outline: none;
-  border-color: var(--border-active);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.14);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 /* Device sync */
@@ -762,6 +731,10 @@
 @media (max-width: 420px) {
   .profile-hero {
     align-items: flex-start;
+  }
+
+  .new-user-grid {
+    grid-template-columns: 1fr;
   }
 
   .device-sync-item {

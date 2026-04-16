@@ -88,7 +88,6 @@ export default function Dashboard({
   loading,
   refreshing,
   onSelectUser,
-  onDraftUserChange,
   onOpenCamera,
 }) {
   const isNewUser = !selectedUserId
@@ -163,32 +162,18 @@ export default function Dashboard({
                   </svg>
                 </div>
                 <p className="empty-face-title">Empty photo by default</p>
-                <p className="empty-face-sub">Enter your details, then capture a fresh face image. Nothing is preloaded when the app refreshes.</p>
+                <p className="empty-face-sub">Nothing is preloaded when the app refreshes. FaceApp now assigns the next running number automatically for a new user.</p>
               </div>
 
-              <div className="new-user-form">
-                <label className="new-user-field">
-                  <span>Name</span>
-                  <input
-                    type="text"
-                    value={draftUser.name}
-                    onChange={(event) => onDraftUserChange('name', event.target.value)}
-                    placeholder="Your full name"
-                    autoComplete="name"
-                  />
-                </label>
-
-                <label className="new-user-field">
-                  <span>Employee ID</span>
-                  <input
-                    type="text"
-                    value={draftUser.employeeId}
-                    onChange={(event) => onDraftUserChange('employeeId', event.target.value)}
-                    placeholder="EMP4829"
-                    autoComplete="off"
-                    spellCheck="false"
-                  />
-                </label>
+              <div className="new-user-grid">
+                <div className="stat-card glass">
+                  <span className="stat-label">Auto Name</span>
+                  <span className="stat-value">{draftUser.name}</span>
+                </div>
+                <div className="stat-card glass">
+                  <span className="stat-label">Running ID</span>
+                  <span className="stat-value">{draftUser.employeeId}</span>
+                </div>
               </div>
 
               {renderDeviceSyncs(activeDevices)}

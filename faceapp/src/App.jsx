@@ -6,7 +6,31 @@ import { enrollFace, fetchAppDashboard } from './api'
 import './App.css'
 
 const VIEW = { DASHBOARD: 'dashboard', CAMERA: 'camera', PREVIEW: 'preview' }
-const EMPTY_NEW_USER = { employeeId: '', name: '' }
+
+function extractRunningNumber(value) {
+  const digits = String(value || '').replace(/\D/g, '')
+
+  if (digits === '') {
+    return 0
+  }
+
+  const parsed = Number.parseInt(digits, 10)
+
+  return Number.isNaN(parsed) ? 0 : parsed
+}
+
+function buildNewUserDefaults(users) {
+  const nextNumber = users.reduce((highestNumber, managedUser) => (
+    Math.max(highestNumber, extractRunningNumber(managedUser.employeeId))
+  ), 0) + 1
+
+  const runningNumber = String(nextNumber).padStart(4, '0')
+
+  return {
+    employeeId: runningNumber,
+    name: `User ${runningNumber}`,
+  }
+}
 
 function normalizeUserSummary(user) {
   return {
@@ -76,7 +100,6 @@ export default function App() {
   const [users, setUsers] = useState([])
   const [user, setUser] = useState(null)
   const [selectedUserId, setSelectedUserId] = useState('')
-  const [draftUser, setDraftUser] = useState(EMPTY_NEW_USER)
   const [activeDevices, setActiveDevices] = useState([])
   const [view, setView] = useState(VIEW.DASHBOARD)
   const [capturedPhoto, setCapturedPhoto] = useState(null)
@@ -89,6 +112,8 @@ export default function App() {
     setToast({ msg, type })
     window.setTimeout(() => setToast(null), 3500)
   }, [])
+
+  const draftUser = buildNewUserDefaults(users)
 
   const loadDashboard = useCallback(async (managedUserId, options = {}) => {
     const { silent = false, selectManagedUser = false } = options
@@ -112,6 +137,7 @@ export default function App() {
         return
       }
 
+      setSelectedUserId('')
       setUser(null)
     } catch (error) {
       console.error(error)
@@ -132,7 +158,6 @@ export default function App() {
 
     if (!nextUserId) {
       setSelectedUserId('')
-      setDraftUser(EMPTY_NEW_USER)
       setUser(null)
       return
     }
@@ -142,39 +167,19 @@ export default function App() {
     loadDashboard(nextUserId, { silent: true, selectManagedUser: true })
   }, [loadDashboard])
 
-  const handleDraftUserChange = useCallback((field, value) => {
-    setDraftUser((currentDraft) => ({
-      ...currentDraft,
-      [field]: value,
-    }))
-  }, [])
-
   const handleOpenCamera = useCallback(() => {
     if (activeDevices.length === 0) {
       showToast('Add at least one active device in admin before enrolling a face.', 'error')
       return
     }
 
-    if (!selectedUserId) {
-      const employeeId = draftUser.employeeId.trim()
-      const name = draftUser.name.trim()
-
-      if (employeeId === '' || name === '') {
-        showToast('Enter a name and employee ID before capturing a face.', 'error')
-        return
-      }
-
-      if (!/^[A-Za-z0-9]+$/.test(employeeId)) {
-        showToast('Employee ID can only use letters and numbers.', 'error')
-        return
-      }
-    } else if (!user) {
+    if (selectedUserId && !user) {
       showToast('Select a managed user before capturing a face.', 'error')
       return
     }
 
     setView(VIEW.CAMERA)
-  }, [activeDevices.length, draftUser.employeeId, draftUser.name, selectedUserId, showToast, user])
+  }, [activeDevices.length, selectedUserId, showToast, user])
 
   const handleCapture = useCallback((dataUrl) => {
     setCapturedPhoto(dataUrl)
@@ -195,8 +200,8 @@ export default function App() {
             photo_data_url: capturedPhoto,
           }
         : {
-            employee_id: draftUser.employeeId.trim(),
-            name: draftUser.name.trim(),
+            employee_id: draftUser.employeeId,
+            name: draftUser.name,
             photo_data_url: capturedPhoto,
           }
 
@@ -254,7 +259,6 @@ export default function App() {
         loading={loading}
         refreshing={refreshing}
         onSelectUser={handleSelectUser}
-        onDraftUserChange={handleDraftUserChange}
         onOpenCamera={handleOpenCamera}
       />
 
