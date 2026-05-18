@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    // External integration surface (currently used by qparking-local to open
+    // the turnstile after a paid exit). Putting the env() call here instead
+    // of at controller-runtime means it survives `php artisan config:cache`.
+    'external_api' => [
+        'token' => env('FACEAPP_EXTERNAL_API_TOKEN'),
+    ],
+
 ];
